@@ -23,7 +23,7 @@ if (fs.existsSync(localEnvPath)) {
 }
 
 const { bootstrap } = await import("./bootstrap/index.js");
-const { registry } = await import("@armoriq/mcp-registry");
+const { registry } = await import("@cossie/mcp-registry");
 
 await bootstrap();
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { DiscoveredTool, MCPServerConfig } from "@armoriq/shared-types";
+import type { DiscoveredTool, MCPServerConfig } from "@cossie/shared-types";
 
 const { discoverToolsMock, executeToolMock } = vi.hoisted(() => ({
   discoverToolsMock: vi.fn(),

@@ -2,7 +2,7 @@
 
 # Policy Engine
 
-The Policy Engine is the core security component of ArmorIQ.
+The Policy Engine is the core security component of Cossie.
 
 Its responsibility is simple:
 
@@ -1078,7 +1078,7 @@ The Policy Engine currently supports:
 * Prompt injection awareness (handled before evaluation)
 * Risk overrides (resolved before evaluation)
 
-Together, these features satisfy the assignment requirements while remaining modular and extensible.
+Together, these features satisfy the project requirements while remaining modular and extensible.
 
 ---
 
@@ -1164,7 +1164,7 @@ These metrics would provide valuable operational insight.
 
 # Summary
 
-The Policy Engine is the authorization core of ArmorIQ.
+The Policy Engine is the authorization core of Cossie.
 
 It operates entirely on validated in-memory rules, produces deterministic authorization decisions, and remains independent of infrastructure concerns.
 

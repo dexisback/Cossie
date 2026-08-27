@@ -1,7 +1,7 @@
 //dashboard logs endpoint 
 import { Router } from "express";
 
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 
 export const logRouter =
   Router();

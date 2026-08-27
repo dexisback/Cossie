@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.agent
-    container_name: armoriq-agent
+    container_name: cossie-agent
     restart: unless-stopped
     env_file: .env
     ports:
@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dashboard
-    container_name: armoriq-dashboard
+    container_name: cossie-dashboard
     restart: unless-stopped
     env_file: .env
     environment:
@@ -37,7 +37,7 @@ services:
   # No-op when AGENT_URL points at localhost.
   keepalive:
     image: curlimages/curl:8.10.1
-    container_name: armoriq-keepalive
+    container_name: cossie-keepalive
     restart: unless-stopped
     depends_on:
       agent:

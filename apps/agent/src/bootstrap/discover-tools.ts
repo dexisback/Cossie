@@ -1,7 +1,7 @@
 //this connects all mcp servers. populates the mcp registry
 
 
-import { registry } from "@armoriq/mcp-registry";
+import { registry } from "@cossie/mcp-registry";
 
 import { MCP_SERVERS } from "../config/mcp-servers.js";
 

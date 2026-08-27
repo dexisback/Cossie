@@ -283,15 +283,15 @@ export interface FAQItem {
 const defaultFAQs: FAQItem[] = [
   {
     q: "How does the Policy Engine evaluate requests?",
-    cmd: "armoriq --status",
+    cmd: "cossie --status",
   },
   {
     q: "What happens if a prompt injection is detected?",
-    cmd: 'armoriq evaluate --prompt "Ignore rules..."',
+    cmd: 'cossie evaluate --prompt "Ignore rules..."',
   },
   {
     q: "How are file path access restrictions enforced?",
-    cmd: 'armoriq run --tool filesystem:read_file --path "/etc/passwd"',
+    cmd: 'cossie run --tool filesystem:read_file --path "/etc/passwd"',
   },
 ];
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PolicyEngine } from "./engine.js";
-import type { Rule, PolicyRequest } from "@armoriq/shared-types";
+import type { Rule, PolicyRequest } from "@cossie/shared-types";
 
 const engine = new PolicyEngine();
 

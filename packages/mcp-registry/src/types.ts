@@ -2,7 +2,7 @@
 import type {
   DiscoveredTool,
   MCPServerConfig,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export interface RegistryEntry {
   server: MCPServerConfig;

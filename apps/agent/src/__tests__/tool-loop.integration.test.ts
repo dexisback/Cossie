@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { DiscoveredTool, Rule, ToolExecutionResponse } from "@armoriq/shared-types";
+import type { DiscoveredTool, Rule, ToolExecutionResponse } from "@cossie/shared-types";
 
 // ---------- Mocks for external / DB boundaries ----------
 
@@ -32,7 +32,7 @@ vi.mock("../services/approval.service.js", () => ({
 }));
 
 // Mock the MCP registry to avoid spawning real MCP processes.
-vi.mock("@armoriq/mcp-registry", () => {
+vi.mock("@cossie/mcp-registry", () => {
   let tools: DiscoveredTool[] = [];
   return {
     registry: {
@@ -50,8 +50,8 @@ vi.mock("@armoriq/mcp-registry", () => {
   };
 });
 
-// Mock @armoriq/db to provide toolRiskOverride for the risk resolver.
-vi.mock("@armoriq/db", () => ({
+// Mock @cossie/db to provide toolRiskOverride for the risk resolver.
+vi.mock("@cossie/db", () => ({
   prisma: {
     toolRiskOverride: {
       findUnique: riskOverrideFindUnique,
@@ -62,7 +62,7 @@ vi.mock("@armoriq/db", () => ({
 // Import AFTER mocks are registered.
 import { toolLoopService } from "../services/agent-services/tool-loop.service.js";
 import { ruleCache } from "../services/rule-cache.service.js";
-import { registry } from "@armoriq/mcp-registry";
+import { registry } from "@cossie/mcp-registry";
 
 // ---------- Helpers ----------
 

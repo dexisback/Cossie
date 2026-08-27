@@ -4,12 +4,12 @@ import type {
   PolicyTraceStep,
   RiskLevel,
   Rule,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 import {
   PolicyDecisionTypeSchema,
   RuleTypeSchema,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 import {
   evaluateApprovalRule,

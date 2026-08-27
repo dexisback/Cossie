@@ -10,9 +10,9 @@ import { Terminal, FAQItem } from "./ui/terminal";
 import { api } from "../lib/api";
 
 const agentCommands = [
-  "armoriq agent status",
-  'armoriq run --tool fetch-web --url "https://api.github.com"',
-  'armoriq policy check --action write_file --path "/var/log/syslog"',
+  "cossie agent status",
+  'cossie run --tool fetch-web --url "https://api.github.com"',
+  'cossie policy check --action write_file --path "/var/log/syslog"',
 ];
 
 const agentOutputs = {
@@ -36,15 +36,15 @@ const agentOutputs = {
 const agentFAQs: FAQItem[] = [
   {
     q: "How do I check live agent connection status?",
-    cmd: "armoriq agent status",
+    cmd: "cossie agent status",
   },
   {
     q: "Can the agent fetch data from external URLs?",
-    cmd: 'armoriq run --tool fetch-web --url "https://api.github.com"',
+    cmd: 'cossie run --tool fetch-web --url "https://api.github.com"',
   },
   {
     q: "What happens if a tool modifies critical files?",
-    cmd: 'armoriq policy check --action write_file --path "/var/log/syslog"',
+    cmd: 'cossie policy check --action write_file --path "/var/log/syslog"',
   },
 ];
 
@@ -131,11 +131,11 @@ export function AgentCard() {
     function onRunPrompt(e: Event) {
       handleRunPrompt((e as CustomEvent).detail);
     }
-    window.addEventListener("armoriq:select-prompt", onSelectPrompt);
-    window.addEventListener("armoriq:run-prompt", onRunPrompt);
+    window.addEventListener("cossie:select-prompt", onSelectPrompt);
+    window.addEventListener("cossie:run-prompt", onRunPrompt);
     return () => {
-      window.removeEventListener("armoriq:select-prompt", onSelectPrompt);
-      window.removeEventListener("armoriq:run-prompt", onRunPrompt);
+      window.removeEventListener("cossie:select-prompt", onSelectPrompt);
+      window.removeEventListener("cossie:run-prompt", onRunPrompt);
     };
   }, [chatMutation.isPending]);
 
@@ -157,7 +157,7 @@ export function AgentCard() {
             outputs={agentOutputs}
             faqList={agentFAQs}
             onSelectFAQ={(item) => handleRunPrompt(item.q)}
-            username="ArmorIQ-Agent"
+            username="Cossie-Agent"
             className="w-full max-w-2xl px-0 shadow-none border-0"
           />
         ) : (

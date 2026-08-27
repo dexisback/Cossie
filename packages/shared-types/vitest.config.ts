@@ -5,7 +5,7 @@ export default mergeConfig(
   sharedConfig,
   defineProject({
     test: {
-      name: "@armoriq/shared-types",
+      name: "@cossie/shared-types",
     },
   })
 );

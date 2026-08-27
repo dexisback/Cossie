@@ -1,7 +1,7 @@
 // Single global source of truth for all MCP servers.
 // The registry bootstraps itself from this configuration.
 
-import type { MCPServerConfig } from "@armoriq/shared-types";
+import type { MCPServerConfig } from "@cossie/shared-types";
 
 export const MCP_SERVERS: MCPServerConfig[] = [
   {

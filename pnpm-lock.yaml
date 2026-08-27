@@ -54,19 +54,19 @@ importers:
 
   apps/agent:
     dependencies:
-      '@armoriq/db':
+      '@cossie/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@armoriq/logger':
+      '@cossie/logger':
         specifier: workspace:*
         version: link:../../packages/logger
-      '@armoriq/mcp-registry':
+      '@cossie/mcp-registry':
         specifier: workspace:*
         version: link:../../packages/mcp-registry
-      '@armoriq/policy-engine':
+      '@cossie/policy-engine':
         specifier: workspace:*
         version: link:../../packages/policy-engine
-      '@armoriq/shared-types':
+      '@cossie/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
       '@google/genai':
@@ -115,7 +115,7 @@ importers:
 
   apps/custom-mcp:
     dependencies:
-      '@armoriq/shared-types':
+      '@cossie/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
       '@modelcontextprotocol/sdk':
@@ -272,10 +272,10 @@ importers:
 
   packages/mcp-registry:
     dependencies:
-      '@armoriq/db':
+      '@cossie/db':
         specifier: workspace:*
         version: link:../db
-      '@armoriq/shared-types':
+      '@cossie/shared-types':
         specifier: workspace:*
         version: link:../shared-types
       '@modelcontextprotocol/sdk':
@@ -294,7 +294,7 @@ importers:
 
   packages/policy-engine:
     dependencies:
-      '@armoriq/shared-types':
+      '@cossie/shared-types':
         specifier: workspace:*
         version: link:../shared-types
     devDependencies:

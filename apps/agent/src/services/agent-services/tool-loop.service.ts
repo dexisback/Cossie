@@ -7,15 +7,15 @@ from "../log.service.js";
 import { promptSecurityService, PromptSecurityService } from "../prompt-security.service.js";
 import {
   policyEngine,
-} from "@armoriq/policy-engine";
-import { registry } from "@armoriq/mcp-registry";
-import { prisma } from "@armoriq/db";
+} from "@cossie/policy-engine";
+import { registry } from "@cossie/mcp-registry";
+import { prisma } from "@cossie/db";
 
 import { ruleCache } from "../rule-cache.service.js";
 
 import { chatService } from "./chat.service.js";
 
-import type { RiskLevel } from "@armoriq/shared-types";
+import type { RiskLevel } from "@cossie/shared-types";
 
 async function resolveEffectiveRisk(
   toolName: string,

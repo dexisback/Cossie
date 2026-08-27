@@ -5,7 +5,7 @@
 
 import type {
   DiscoveredTool,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export class ToolAdapterService {
   toGeminiTools(

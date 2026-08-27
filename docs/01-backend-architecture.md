@@ -3379,7 +3379,7 @@ Without this table:
 
 Policies would need to be hardcoded.
 
-That would violate one of the assignment's primary requirements.
+That would violate one of the project's primary requirements.
 
 ---
 
@@ -4428,7 +4428,7 @@ This entire process is automatic.
 
 # Why Runtime Discovery?
 
-The assignment explicitly required:
+The project explicitly required:
 
 > No hardcoded tool lists.
 

@@ -1,11 +1,11 @@
 //dashboard tools page
 import { Router } from "express";
 
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 
 
 //for adding dynamic reloads when a new tool is added:
-import {registry } from "@armoriq/mcp-registry"
+import {registry } from "@cossie/mcp-registry"
 import { MCP_SERVERS } from "../config/mcp-servers.js";
 import { toolCatalogService } from "../services/tool-catalog.service.js";
 

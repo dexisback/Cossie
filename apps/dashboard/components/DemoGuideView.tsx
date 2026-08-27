@@ -60,7 +60,7 @@ export function DemoGuideView() {
               Capabilities Overview
             </h3>
             <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
-              Armoriq serves as a model-agnostic security plane for agents. It
+              Cossie serves as a model-agnostic security plane for agents. It
               sits directly in the tool loop, evaluating execution safety.
             </p>
           </div>
@@ -102,7 +102,7 @@ export function DemoGuideView() {
               System Scope
             </span>
             <h3 className="text-lg font-bold text-foreground mt-1">
-              Assignment Coverage
+              Project Coverage
             </h3>
           </div>
           <div className="space-y-2">
@@ -141,7 +141,7 @@ export function DemoGuideView() {
             Process Topology
           </span>
           <h3 className="text-lg font-bold text-foreground mt-1 mb-6">
-            How Armoriq Works
+            How Cossie Works
           </h3>
           <ArchitectureOverviewWidget />
         </motion.div>

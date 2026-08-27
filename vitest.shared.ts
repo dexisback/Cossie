@@ -2,7 +2,7 @@ import { defineProject } from "vitest/config";
 
 export default defineProject({
   test: {
-    name: "armoriq",
+    name: "cossie",
     globals: false,
     environment: "node",
     include: ["src/**/*.{test,spec}.{ts,tsx}", "tests/**/*.{test,spec}.{ts,tsx}"],
@@ -24,11 +24,11 @@ export default defineProject({
   },
   resolve: {
     alias: {
-      "@armoriq/db": new URL("./packages/db/src/index.ts", import.meta.url).pathname,
-      "@armoriq/logger": new URL("./packages/logger/src/index.ts", import.meta.url).pathname,
-      "@armoriq/mcp-registry": new URL("./packages/mcp-registry/src/index.ts", import.meta.url).pathname,
-      "@armoriq/policy-engine": new URL("./packages/policy-engine/src/index.ts", import.meta.url).pathname,
-      "@armoriq/shared-types": new URL("./packages/shared-types/src/index.ts", import.meta.url).pathname,
+      "@cossie/db": new URL("./packages/db/src/index.ts", import.meta.url).pathname,
+      "@cossie/logger": new URL("./packages/logger/src/index.ts", import.meta.url).pathname,
+      "@cossie/mcp-registry": new URL("./packages/mcp-registry/src/index.ts", import.meta.url).pathname,
+      "@cossie/policy-engine": new URL("./packages/policy-engine/src/index.ts", import.meta.url).pathname,
+      "@cossie/shared-types": new URL("./packages/shared-types/src/index.ts", import.meta.url).pathname,
     },
   },
 });

@@ -1,4 +1,4 @@
-# ArmorIQ — Makefile
+# Cossie — Makefile
 # Thin wrapper around existing pnpm scripts. Run `make help` for the full list.
 
 # ---------- Configuration ----------
@@ -14,7 +14,7 @@ RESET  := \033[0m
 
 # ---------- Help ----------
 help: ## Show this help message
-	@printf "$(CYAN)ArmorIQ$(RESET) — available targets\n\n"
+	@printf "$(CYAN)Cossie$(RESET) — available targets\n\n"
 	@printf "$(YELLOW)Development$(RESET)\n"
 	@grep -E '^(install|dev|backend|frontend):.*?##' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-12s$(RESET) %s\n", $$1, $$2}'

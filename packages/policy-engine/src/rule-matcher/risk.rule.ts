@@ -1,7 +1,7 @@
 import type {
   RiskBasedRule,
   RiskLevel,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export function matchesRiskRule(
   rule: RiskBasedRule,

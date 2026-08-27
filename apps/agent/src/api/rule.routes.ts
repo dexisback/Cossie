@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 
 import { redisPublisher } from "../services/redis-publisher.service.js";
 

@@ -4,7 +4,7 @@ const { findUniqueMock } = vi.hoisted(() => ({
   findUniqueMock: vi.fn(),
 }));
 
-vi.mock("@armoriq/db", () => ({
+vi.mock("@cossie/db", () => ({
   prisma: {
     toolRiskOverride: {
       findUnique: findUniqueMock,

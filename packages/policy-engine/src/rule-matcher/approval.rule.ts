@@ -1,7 +1,7 @@
 import type {
   ApprovalRule,
   PolicyRequest,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export function matchesApprovalRule(
   rule: ApprovalRule,

@@ -1,9 +1,9 @@
 import type {
   RiskLevel,
   ToolRiskClassification,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 
 export async function resolveRisk(
   toolName: string,

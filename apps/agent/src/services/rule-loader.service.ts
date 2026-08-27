@@ -1,5 +1,5 @@
-import { prisma } from "@armoriq/db";
-import { RuleSchema, type Rule } from "@armoriq/shared-types";
+import { prisma } from "@cossie/db";
+import { RuleSchema, type Rule } from "@cossie/shared-types";
 import { ruleCache } from "./rule-cache.service.js";
 
 export async function loadRules() {

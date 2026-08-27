@@ -5,7 +5,7 @@ export default mergeConfig(
   sharedConfig,
   defineProject({
     test: {
-      name: "@armoriq/policy-engine",
+      name: "@cossie/policy-engine",
     },
   })
 );

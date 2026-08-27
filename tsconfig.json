@@ -17,11 +17,11 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@armoriq/db": ["packages/db/src/index.ts"],
-      "@armoriq/logger": ["packages/logger/src/index.ts"],
-      "@armoriq/mcp-registry": ["packages/mcp-registry/src/index.ts"],
-      "@armoriq/policy-engine": ["packages/policy-engine/src/index.ts"],
-      "@armoriq/shared-types": ["packages/shared-types/src/index.ts"]
+      "@cossie/db": ["packages/db/src/index.ts"],
+      "@cossie/logger": ["packages/logger/src/index.ts"],
+      "@cossie/mcp-registry": ["packages/mcp-registry/src/index.ts"],
+      "@cossie/policy-engine": ["packages/policy-engine/src/index.ts"],
+      "@cossie/shared-types": ["packages/shared-types/src/index.ts"]
     }
   },
   "include": ["apps/agent/src/**/*.ts", "apps/custom-mcp/src/**/*.ts", "packages/**/*.ts", "prisma/**/*.ts", "scripts/**/*.ts", "*.ts"],

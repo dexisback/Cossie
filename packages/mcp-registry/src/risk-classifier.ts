@@ -1,7 +1,7 @@
 //this smartly (and auto) recognises the risk level based on the name of the tool
 import type {
   RiskLevel,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export function inferRisk(
   toolName: string,

@@ -5,7 +5,7 @@ export default mergeConfig(
   sharedConfig,
   defineProject({
     test: {
-      name: "@armoriq/agent",
+      name: "@cossie/agent",
     },
   })
 );

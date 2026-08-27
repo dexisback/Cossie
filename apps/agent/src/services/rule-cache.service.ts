@@ -1,4 +1,4 @@
-import type { Rule } from "@armoriq/shared-types";
+import type { Rule } from "@cossie/shared-types";
 
 export class RuleCacheService {
   private rules: Rule[] = [];

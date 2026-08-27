@@ -5,7 +5,7 @@ export default mergeConfig(
   sharedConfig,
   defineProject({
     test: {
-      name: "@armoriq/custom-mcp",
+      name: "@cossie/custom-mcp",
     },
   })
 );

@@ -1,5 +1,5 @@
 {
-  "name": "@armoriq/mcp-registry",
+  "name": "@cossie/mcp-registry",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,8 +13,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@armoriq/db": "workspace:*",
-    "@armoriq/shared-types": "workspace:*",
+    "@cossie/db": "workspace:*",
+    "@cossie/shared-types": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@upstash/context7-mcp": "^3.2.2"
   },

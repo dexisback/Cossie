@@ -1,5 +1,5 @@
 {
-  "name": "@armoriq/logger",
+  "name": "@cossie/logger",
   "version": "0.0.0",
   "private": true,
   "type": "module",

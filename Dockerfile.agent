@@ -39,7 +39,7 @@ COPY apps/custom-mcp ./apps/custom-mcp
 RUN DATABASE_URL="postgresql://placeholder@localhost:5432/placeholder" pnpm prisma:generate
 
 # Build custom-mcp (agent spawns this via stdio)
-RUN pnpm --filter @armoriq/custom-mcp build
+RUN pnpm --filter @cossie/custom-mcp build
 
 # Prune to production-only deps for the runner
 RUN pnpm prune --prod

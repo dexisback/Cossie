@@ -1,7 +1,7 @@
 import type {
   InputValidationRule,
   PolicyRequest,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export function matchesInputValidationRule(
   rule: InputValidationRule,

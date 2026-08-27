@@ -1,4 +1,4 @@
-import type { BlockToolRule, PolicyRequest } from '@armoriq/shared-types';
+import type { BlockToolRule, PolicyRequest } from '@cossie/shared-types';
 
 export function matchesBlockToolRule(
   rule: BlockToolRule,

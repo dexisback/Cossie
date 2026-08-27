@@ -2,7 +2,7 @@
 
 # API Reference
 
-This document provides the complete reference for every HTTP endpoint exposed by the ArmorIQ Agent backend.
+This document provides the complete reference for every HTTP endpoint exposed by the Cossie Agent backend.
 
 Unlike `01-backend-architecture.md`, which explains how the backend is designed, this document explains how external clients interact with it.
 
@@ -12,7 +12,7 @@ The intended audience includes:
 * Backend developers
 * API consumers
 * Future contributors
-* Engineers integrating ArmorIQ into other systems
+* Engineers integrating Cossie into other systems
 
 Every endpoint is documented with:
 
@@ -215,7 +215,7 @@ This design simplifies scaling and makes horizontal deployment straightforward.
 
 # Authentication
 
-The current assignment does not require authentication.
+The current project does not require authentication.
 
 Therefore, all endpoints are assumed to operate in a trusted administrative environment.
 
@@ -1313,7 +1313,7 @@ The frontend never communicates directly with Redis, Prisma, or MCP servers.
 
 # Security Considerations
 
-The current assignment assumes a trusted environment.
+The current project assumes a trusted environment.
 
 Future production deployments should introduce:
 
@@ -1435,7 +1435,7 @@ This minimizes frontend changes and simplifies future integrations.
 
 # Conclusion
 
-The REST API serves as the single public interface to the ArmorIQ backend.
+The REST API serves as the single public interface to the Cossie backend.
 
 It exposes the platform's capabilities while hiding internal implementation details such as the Policy Engine, MCP Registry, Redis synchronization, and LLM provider logic.
 

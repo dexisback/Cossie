@@ -1,5 +1,5 @@
 {
-  "name": "@armoriq/policy-engine",
+  "name": "@cossie/policy-engine",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@armoriq/shared-types": "workspace:*"
+    "@cossie/shared-types": "workspace:*"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.9",

@@ -1,8 +1,8 @@
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 
 import type {
   DiscoveredTool,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 export class ToolCatalogService {
   async sync(

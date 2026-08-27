@@ -4,11 +4,11 @@
 
 ## Design Philosophy
 
-ArmorIQ is built around a simple architectural principle:
+Cossie is built around a simple architectural principle:
 
 > AI should be responsible for reasoning. Infrastructure should remain responsible for authorization and execution.
 
-Rather than allowing a language model to directly invoke external systems, ArmorIQ inserts an independent policy layer between AI reasoning and tool execution.
+Rather than allowing a language model to directly invoke external systems, Cossie inserts an independent policy layer between AI reasoning and tool execution.
 
 This creates a clear separation between *intent* and *permission*.
 
@@ -54,7 +54,7 @@ Each communicates through well-defined interfaces without relying on implementat
 
 Many AI agents treat security as a collection of conditional statements scattered throughout execution code.
 
-ArmorIQ intentionally avoids this approach.
+Cossie intentionally avoids this approach.
 
 Instead, all authorization decisions originate from a single Policy Engine.
 
@@ -94,7 +94,7 @@ Security evolves independently from application releases.
 
 # Runtime Extensibility
 
-ArmorIQ is designed around runtime discovery rather than compile-time knowledge.
+Cossie is designed around runtime discovery rather than compile-time knowledge.
 
 Neither the AI Agent nor the Policy Engine maintains a hardcoded list of available tools.
 
@@ -113,7 +113,7 @@ This architecture scales naturally as additional tool providers are connected.
 
 # Composition over Specialization
 
-Rather than building separate execution paths for every type of MCP server, ArmorIQ introduces an abstraction layer through the MCP Registry.
+Rather than building separate execution paths for every type of MCP server, Cossie introduces an abstraction layer through the MCP Registry.
 
 The registry presents a single interface regardless of:
 
@@ -147,7 +147,7 @@ This design also simplifies synchronization through Redis Pub/Sub and enables im
 
 # System Boundaries
 
-ArmorIQ intentionally separates operational responsibilities into two independent planes.
+Cossie intentionally separates operational responsibilities into two independent planes.
 
 The first is the execution plane.
 
@@ -208,7 +208,7 @@ These decisions prioritize maintainability, extensibility and runtime flexibilit
 
 # Why an Independent Backend Instead of Next.js API Routes
 
-Although Next.js supports server-side API routes, ArmorIQ intentionally keeps the AI runtime as a separate Express application.
+Although Next.js supports server-side API routes, Cossie intentionally keeps the AI runtime as a separate Express application.
 
 The backend is not a collection of CRUD endpoints.
 
@@ -282,9 +282,9 @@ This makes it portable, independently testable and reusable in different environ
 
 # Why Dynamic Tool Discovery
 
-One of the assignment requirements was avoiding hardcoded tool definitions.
+One of the project requirements was avoiding hardcoded tool definitions.
 
-Rather than maintaining a static list of supported tools, ArmorIQ discovers tools directly from connected MCP servers at runtime.
+Rather than maintaining a static list of supported tools, Cossie discovers tools directly from connected MCP servers at runtime.
 
 This provides several advantages.
 
@@ -302,7 +302,7 @@ Discovery therefore becomes a runtime concern rather than a development concern.
 
 # Why an MCP Registry
 
-Instead of allowing the Tool Loop to communicate directly with MCP servers, ArmorIQ introduces a dedicated Registry layer.
+Instead of allowing the Tool Loop to communicate directly with MCP servers, Cossie introduces a dedicated Registry layer.
 
 The registry serves several purposes:
 
@@ -324,7 +324,7 @@ Adding a new server requires registration rather than changes throughout the run
 
 Static configuration tightly couples the application to a predefined infrastructure layout.
 
-ArmorIQ instead treats connected MCP servers as runtime dependencies.
+Cossie instead treats connected MCP servers as runtime dependencies.
 
 The platform discovers available capabilities after startup rather than assuming their existence beforehand.
 
@@ -350,7 +350,7 @@ Policy changes should become effective immediately after an administrator modifi
 
 One possible approach would be for every running agent to periodically poll the database for updates.
 
-ArmorIQ intentionally avoids this approach.
+Cossie intentionally avoids this approach.
 
 Instead, policy updates follow an event-driven model.
 
@@ -394,7 +394,7 @@ Evaluating policies requires access to the active rule set.
 
 Loading these rules from the database during every tool execution would introduce unnecessary latency while increasing database traffic.
 
-Instead, ArmorIQ maintains an in-memory Rule Cache.
+Instead, Cossie maintains an in-memory Rule Cache.
 
 The cache is refreshed whenever policy updates occur.
 
@@ -439,7 +439,7 @@ Not every sensitive operation should be permanently prohibited.
 
 Some actions are operationally necessary but sufficiently impactful that they require explicit authorization.
 
-Instead of treating every high-risk request as a denial, ArmorIQ introduces a third authorization state:
+Instead of treating every high-risk request as a denial, Cossie introduces a third authorization state:
 
 REQUIRE_APPROVAL
 
@@ -488,7 +488,7 @@ Administrators retain visibility without unnecessarily restricting legitimate us
 
 Every significant runtime event is recorded through a common audit logging layer.
 
-Rather than allowing each subsystem to implement its own logging strategy, ArmorIQ centralizes audit generation.
+Rather than allowing each subsystem to implement its own logging strategy, Cossie centralizes audit generation.
 
 This produces a consistent security history regardless of event type.
 
@@ -555,7 +555,7 @@ It also allows different runtimes to consume the same Policy Engine without modi
 
 Every architectural decision introduces tradeoffs.
 
-ArmorIQ intentionally favors modularity, runtime flexibility and clear separation of responsibilities over minimizing implementation complexity.
+Cossie intentionally favors modularity, runtime flexibility and clear separation of responsibilities over minimizing implementation complexity.
 
 The following sections describe some of the most significant design tradeoffs made during development.
 
@@ -636,7 +636,7 @@ Automatically blocking suspicious prompts would provide stronger preventative se
 
 However, it would also increase false positives and interfere with legitimate educational or research-oriented conversations.
 
-ArmorIQ instead prioritizes visibility.
+Cossie instead prioritizes visibility.
 
 Suspicious prompts become observable security events while legitimate interactions continue uninterrupted.
 
@@ -676,9 +676,9 @@ The resulting architecture is intentionally designed to accommodate future capab
 
 # Future Evolution
 
-ArmorIQ was intentionally designed with extensibility as a primary architectural goal.
+Cossie was intentionally designed with extensibility as a primary architectural goal.
 
-Rather than optimizing solely for the current assignment requirements, the platform establishes clear boundaries that allow future capabilities to be introduced with minimal impact on existing components.
+Rather than optimizing solely for the current project requirements, the platform establishes clear boundaries that allow future capabilities to be introduced with minimal impact on existing components.
 
 Several architectural decisions—including the isolated Policy Engine, MCP Registry abstraction and runtime rule synchronization—were made specifically to support long-term evolution.
 
@@ -728,7 +728,7 @@ As the MCP ecosystem grows, additional providers can be integrated without chang
 * the dashboard
 * the tool execution model
 
-This keeps ArmorIQ provider-agnostic while allowing new capabilities to be introduced through standard MCP interfaces.
+This keeps Cossie provider-agnostic while allowing new capabilities to be introduced through standard MCP interfaces.
 
 ---
 
@@ -755,7 +755,7 @@ These capabilities primarily extend existing components rather than replacing th
 
 # Lessons Learned
 
-Developing ArmorIQ reinforced several architectural principles.
+Developing Cossie reinforced several architectural principles.
 
 Security is significantly easier to reason about when authorization is centralized rather than distributed across multiple services.
 
@@ -765,13 +765,13 @@ Dynamic discovery enables the platform to evolve alongside the MCP ecosystem wit
 
 Finally, treating observability as a first-class concern greatly simplifies debugging, operational monitoring and security investigations.
 
-Rather than viewing logging as an afterthought, ArmorIQ records the complete lifecycle of every significant runtime decision.
+Rather than viewing logging as an afterthought, Cossie records the complete lifecycle of every significant runtime decision.
 
 ---
 
 # Closing Remarks
 
-ArmorIQ demonstrates that secure AI agent systems benefit from treating reasoning, authorization and execution as independent concerns.
+Cossie demonstrates that secure AI agent systems benefit from treating reasoning, authorization and execution as independent concerns.
 
 By isolating policy evaluation from tool execution and runtime administration, the platform remains modular, deterministic and extensible while supporting dynamic infrastructure and evolving security requirements.
 

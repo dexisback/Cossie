@@ -193,7 +193,7 @@ export function QuickTestScenarios({
           Quick Test Scenarios
         </h4>
         <p className="text-[10px] text-muted-foreground">
-          Select or trigger guided prompt scenarios to test the ArmorIQ security
+          Select or trigger guided prompt scenarios to test the Cossie security
           pipeline.
         </p>
       </div>
@@ -286,7 +286,7 @@ export function QuickTestScenarios({
 
       <div className="p-4 bg-muted/20 border border-border rounded-xl space-y-2">
         <h5 className="text-[10px] font-mono font-semibold uppercase text-foreground">
-          How to Test ArmorIQ
+          How to Test Cossie
         </h5>
         <ol className="text-[10px] text-muted-foreground space-y-1.5 list-decimal list-inside font-medium leading-relaxed">
           <li>

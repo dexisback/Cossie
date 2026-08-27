@@ -6,7 +6,7 @@ import { resolveRisk } from "./risk-resolver.js";
 import type {
   DiscoveredTool,
   MCPServerConfig,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 import {
   SSEClientTransport,
@@ -25,7 +25,7 @@ export async function discoverTools(
 ): Promise<DiscoveredTool[]> {
   const client = new Client(
     {
-      name: "armoriq-agent",
+      name: "cossie-agent",
       version: "1.0.0",
     }
   );

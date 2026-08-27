@@ -1,16 +1,16 @@
 <div align="center">
 
-# ArmorIQ
+# Cossie
 
 ### Guarded AI Agent with Dynamic Policy Enforcement and Model Context Protocol (MCP) Support
 
 A production-inspired AI agent runtime that sits between Large Language Models and external tools, enforcing configurable guardrails before every tool invocation.
 
-Built as part of the ArmorIQ Software Engineer Internship Assignment.
+Built as part of the Cossie Software Engineer Internship Project.
 
 ---
 
-![CI](https://github.com/dexisback/armoriq-assignment/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/dexisback/cossie/actions/workflows/ci.yml/badge.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue)
 ![Express](https://img.shields.io/badge/Express-5-lightgrey)
@@ -25,11 +25,11 @@ Built as part of the ArmorIQ Software Engineer Internship Assignment.
 
 ## Overview
 
-ArmorIQ is a secure AI agent platform built around one central idea:
+Cossie is a secure AI agent platform built around one central idea:
 
 > AI models should decide *what* they want to do, but independent infrastructure should decide *whether they are allowed to do it.*
 
-Instead of allowing an LLM to directly invoke external tools, ArmorIQ inserts a dedicated Policy Engine between the model and every MCP tool execution.
+Instead of allowing an LLM to directly invoke external tools, Cossie inserts a dedicated Policy Engine between the model and every MCP tool execution.
 
 Every tool request is evaluated against administrator-defined runtime policies before execution.
 
@@ -46,9 +46,9 @@ The platform follows the Model Context Protocol (MCP), allowing tools to be disc
 
 ---
 
-## Assignment Goals
+## Project Goals
 
-This project implements all core requirements from the ArmorIQ Software Engineer assignment.
+This project implements all core requirements from the Cossie Software Engineer project.
 
 | Requirement | Status |
 |-------------|:------:|
@@ -171,7 +171,7 @@ The README provides a high-level overview, while the documentation covers implem
 
 ## Technology Stack
 
-ArmorIQ is built as a TypeScript monorepo with a clear separation between runtime services, shared packages and the administrative dashboard.
+Cossie is built as a TypeScript monorepo with a clear separation between runtime services, shared packages and the administrative dashboard.
 
 | Layer | Technology |
 |--------|------------|
@@ -323,8 +323,8 @@ The Policy Engine serves as the sole authorization boundary between AI reasoning
 > **Want to skip local setup?** This project is fully containerized. Clone, add a `.env`, and run one command:
 >
 > ```bash
-> git clone https://github.com/dexisback/armoriq-assignment.git
-> cd armoriq-assignment
+> git clone https://github.com/dexisback/cossie.git
+> cd cossie
 > cp .env.example .env
 > # fill in your API keys
 > docker compose up --build
@@ -350,9 +350,9 @@ Before running the project, ensure the following tools are installed:
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/dexisback/armoriq-assignment.git
+git clone https://github.com/dexisback/cossie.git
 
-cd armoriq-assignment
+cd cossie
 ```
 
 ---
@@ -496,8 +496,8 @@ The **custom MCP server** is *not* a separate container — the agent launches i
 ### Quick start
 
 ```bash
-git clone https://github.com/dexisback/armoriq-assignment.git
-cd armoriq-assignment
+git clone https://github.com/dexisback/cossie.git
+cd cossie
 cp .env.example .env
 # fill in DATABASE_URL, REDIS_URL, GEMINI_API_KEY, GROK_API_KEY, CONTEXT7_API_KEY
 docker compose up --build
@@ -567,7 +567,7 @@ The agent is hosted on Render's free tier, which spins a service down after ~15 
 
 You can override the target by setting a repo variable:
 
-- **Settings → Secrets and variables → Actions → Variables → `AGENT_URL`** = `https://armoriq-assignment-6sbz.onrender.com`
+- **Settings → Secrets and variables → Actions → Variables → `AGENT_URL`** = `https://cossie-6sbz.onrender.com`
 
 The default in the workflow already points at that URL, so no config is required for it to work out of the box. You can also trigger it manually with `workflow_dispatch` from the Actions tab.
 
@@ -614,7 +614,7 @@ The README intentionally focuses on project usage and architecture, while the en
 
 ## Roadmap
 
-The current implementation satisfies all core assignment requirements while leaving room for future expansion.
+The current implementation satisfies all core project requirements while leaving room for future expansion.
 
 Planned improvements include:
 
@@ -634,7 +634,7 @@ Planned improvements include:
 
 ---
 
-## Assignment Requirements
+## Project Requirements
 
 | Requirement | Status |
 |-------------|:------:|
@@ -654,7 +654,7 @@ Planned improvements include:
 
 ## Contributing
 
-This repository was developed as part of the ArmorIQ Software Engineer Internship Assignment and is not currently accepting external contributions.
+This repository was developed as part of the Cossie Software Engineer Internship Project and is not currently accepting external contributions.
 
 If you'd like to discuss the implementation or architecture, feel free to open an issue or reach out.
 
@@ -684,7 +684,7 @@ This project builds upon several excellent open-source technologies.
 - Framer Motion
 - TypeScript
 
-Special thanks to the ArmorIQ team for designing an assignment that emphasizes runtime architecture, authorization, and secure AI systems over traditional CRUD applications.
+Special thanks to the Cossie team for designing a project that emphasizes runtime architecture, authorization, and secure AI systems over traditional CRUD applications.
 
 ---
 

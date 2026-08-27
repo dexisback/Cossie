@@ -1,4 +1,4 @@
-import type { BudgetRule } from "@armoriq/shared-types";
+import type { BudgetRule } from "@cossie/shared-types";
 
 export function exceedsBudget(
   rule: BudgetRule,

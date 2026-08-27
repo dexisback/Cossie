@@ -2,7 +2,7 @@ import type {
   ToolExecutionRequest,
   ToolExecutionResponse,
   MCPServerConfig,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
 import {
   SSEClientTransport,
@@ -19,7 +19,7 @@ export async function executeTool(
   request: ToolExecutionRequest
 ): Promise<ToolExecutionResponse> {
   const client = new Client({
-    name: "armoriq-agent",
+    name: "cossie-agent",
     version: "1.0.0",
   });
 

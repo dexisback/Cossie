@@ -117,7 +117,7 @@ export function ArchitectureOverviewWidget() {
       <div className="group p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.05),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)] flex flex-col justify-between gap-5">
         <div>
           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground leading-relaxed">
-            How ArmorIQ Works
+            How Cossie Works
           </h4>
           <p className="text-[10px] text-muted-foreground/80 mt-1 leading-relaxed">
             Hover over any node in the request pipeline to trace its path.
@@ -195,7 +195,7 @@ export function ArchitectureOverviewWidget() {
 
         <div className="group p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.05),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)] space-y-4">
           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground border-b border-white/[0.06] pb-3 leading-relaxed">
-            Assignment Coverage
+            Project Coverage
           </h4>
           <div className="divide-y divide-white/[0.04] border border-white/[0.06] rounded-xl bg-background/30 overflow-hidden text-[10px] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
             {coverage.map((c) => (
@@ -231,7 +231,7 @@ export function ArchitectureOverviewWidget() {
           </h4>
         </div>
         <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-          ArmorIQ separates AI reasoning from tool execution. Every tool request
+          Cossie separates AI reasoning from tool execution. Every tool request
           passes through the Policy Engine before reaching any MCP server.
           Administrators can modify policies at runtime without restarting the
           agent, allowing security rules to evolve independently of application

@@ -92,7 +92,7 @@ export function McpServersView({}: McpServersViewProps) {
                 <div className="absolute left-0 top-full mt-1 w-80 z-30 bg-card border border-border/70 rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-1 duration-100">
                   <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-muted-foreground mb-3">What is an MCP Server?</p>
                   <div className="space-y-2.5 text-[10px] text-muted-foreground leading-relaxed">
-                    <p>Model Context Protocol (MCP) servers expose tools and resources that AI models can safely query or invoke. ArmorIQ dynamically registers these servers at runtime and applies safety, risk evaluation, and approval guardrails before any action execution.</p>
+                    <p>Model Context Protocol (MCP) servers expose tools and resources that AI models can safely query or invoke. Cossie dynamically registers these servers at runtime and applies safety, risk evaluation, and approval guardrails before any action execution.</p>
                     <div>
                       <p className="font-semibold text-foreground/70 mb-1">Supported transports:</p>
                       <ul className="space-y-1 pl-1">

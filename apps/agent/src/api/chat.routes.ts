@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 import { toolLoopService } from "../services/agent-services/tool-loop.service.js";
 
 

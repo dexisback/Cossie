@@ -1,4 +1,4 @@
-import { prisma } from "@armoriq/db";
+import { prisma } from "@cossie/db";
 
 export class ApprovalService {
   async create(

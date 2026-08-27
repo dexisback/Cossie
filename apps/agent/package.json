@@ -1,5 +1,5 @@
 {
-  "name": "@armoriq/agent",
+  "name": "@cossie/agent",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,11 +11,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@armoriq/db": "workspace:*",
-    "@armoriq/logger": "workspace:*",
-    "@armoriq/mcp-registry": "workspace:*",
-    "@armoriq/policy-engine": "workspace:*",
-    "@armoriq/shared-types": "workspace:*",
+    "@cossie/db": "workspace:*",
+    "@cossie/logger": "workspace:*",
+    "@cossie/mcp-registry": "workspace:*",
+    "@cossie/policy-engine": "workspace:*",
+    "@cossie/shared-types": "workspace:*",
     "@google/genai": "^2.9.0",
     "@upstash/context7-mcp": "^3.2.2",
     "@upstash/redis": "^1.38.0",

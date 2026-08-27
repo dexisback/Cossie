@@ -1,5 +1,5 @@
 //single place for writing audit events
-import { prisma, AuditEventType, PolicyDecisionType, RiskLevel } from "@armoriq/db";
+import { prisma, AuditEventType, PolicyDecisionType, RiskLevel } from "@cossie/db";
 
 interface CreateLogInput {
   toolName: string;

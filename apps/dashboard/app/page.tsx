@@ -150,7 +150,7 @@ export default function Home() {
             </div>
             <div className="h-4 w-[1px] bg-border" />
             <a
-              href="https://github.com/dexisback/armoriq-assignment/tree/main/docs"
+              href="https://github.com/dexisback/cossie/tree/main/docs"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => sound.playTap()}
@@ -161,7 +161,7 @@ export default function Home() {
             </a>
             <div className="h-4 w-[1px] bg-border" />
             <a
-              href="https://github.com/dexisback/armoriq-assignment"
+              href="https://github.com/dexisback/cossie"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => sound.playTap()}

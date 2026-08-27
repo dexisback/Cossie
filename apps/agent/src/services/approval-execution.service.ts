@@ -1,5 +1,5 @@
 import { registry }
-from "@armoriq/mcp-registry";
+from "@cossie/mcp-registry";
 
 import { approvalService }
 from "./approval.service.js";

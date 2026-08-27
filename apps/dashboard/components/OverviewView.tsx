@@ -315,7 +315,7 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
               {helpOpen && (
                 <div className="absolute right-0 top-full mt-1 w-72 z-30 bg-card border border-border/70 rounded-xl shadow-2xl p-4 animate-in fade-in slide-in-from-top-1 duration-100">
                   <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                    How to Test ArmorIQ
+                    How to Test Cossie
                   </p>
                   <ol className="text-[10px] text-muted-foreground space-y-2 leading-relaxed">
                     {[
@@ -401,7 +401,7 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
                       type="button"
                       onClick={() =>
                         window.dispatchEvent(
-                          new CustomEvent("armoriq:select-prompt", {
+                          new CustomEvent("cossie:select-prompt", {
                             detail: sc.prompt,
                           }),
                         )
@@ -414,7 +414,7 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
                       type="button"
                       onClick={() =>
                         window.dispatchEvent(
-                          new CustomEvent("armoriq:run-prompt", {
+                          new CustomEvent("cossie:run-prompt", {
                             detail: sc.prompt,
                           }),
                         )
@@ -465,7 +465,7 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
                     <p className="text-[10px] text-muted-foreground leading-relaxed">
                       Every tool call, policy decision, and security event is
                       recorded here in real time. This immutable trail is the
-                      foundation of ArmorIQ's compliance model.
+                      foundation of Cossie's compliance model.
                     </p>
                   </div>
                 )}

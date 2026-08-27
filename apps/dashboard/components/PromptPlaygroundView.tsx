@@ -155,7 +155,7 @@ export function PromptPlaygroundView() {
               </div>
               <div>
                 <h4 className="font-semibold text-foreground mb-1.5">
-                  How ArmorIQ Handles It:
+                  How Cossie Handles It:
                 </h4>
                 <ul className="space-y-1 list-disc pl-4 text-[10px]">
                   <li>Prompt scanned before LLM execution</li>
@@ -177,7 +177,7 @@ export function PromptPlaygroundView() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Test system input against the ArmorIQ Prompt Security scanner to
+          Test system input against the Cossie Prompt Security scanner to
           evaluate policy logging behavior.
         </p>
       </div>
@@ -333,7 +333,7 @@ export function PromptPlaygroundView() {
                       Explanation
                     </span>
                     <p className="text-muted-foreground leading-relaxed">
-                      ArmorIQ intentionally logs suspicious prompts instead of
+                      Cossie intentionally logs suspicious prompts instead of
                       blocking them because legitimate users may discuss prompt
                       injection techniques for educational or debugging
                       purposes.

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ArmorIQ Policy Engine",
+  title: "Cossie Policy Engine",
   description: "MCP security policy engine, tool loops, approvals and logs.",
 };
 

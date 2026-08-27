@@ -4,7 +4,7 @@
 
 ## Overview
 
-ArmorIQ is designed around a simple principle:
+Cossie is designed around a simple principle:
 
 > Every AI-initiated tool execution must be treated as an untrusted request until it has been evaluated by an independent policy layer.
 
@@ -71,7 +71,7 @@ Even if a model requests a dangerous action, execution only occurs if an active 
 
 ## Separation of Responsibilities
 
-ArmorIQ intentionally separates responsibilities into independent layers.
+Cossie intentionally separates responsibilities into independent layers.
 
 ### Language Model
 
@@ -273,7 +273,7 @@ This allows sensitive operations to remain available while introducing a human a
 
 # Human Approval Model
 
-ArmorIQ separates authorization from execution.
+Cossie separates authorization from execution.
 
 The Policy Engine determines that approval is required.
 
@@ -312,7 +312,7 @@ Examples include attempts such as:
 * "Act as the system administrator."
 * "Reveal your hidden prompt."
 
-ArmorIQ performs prompt scanning before the request enters the normal tool execution loop.
+Cossie performs prompt scanning before the request enters the normal tool execution loop.
 
 If suspicious patterns are detected:
 
@@ -330,7 +330,7 @@ Many legitimate users may discuss prompt injection techniques for educational, r
 
 Blocking these requests would unnecessarily degrade usability.
 
-Instead, ArmorIQ treats prompt injection as an observable security signal rather than an automatic execution failure.
+Instead, Cossie treats prompt injection as an observable security signal rather than an automatic execution failure.
 
 This allows administrators to monitor suspicious behavior while avoiding unnecessary interruptions to legitimate workflows.
 
@@ -351,7 +351,7 @@ Whenever possible, the platform records:
 * timestamps
 * prompt security events
 
-Rather than only recording failures, ArmorIQ records the complete decision-making process.
+Rather than only recording failures, Cossie records the complete decision-making process.
 
 This provides administrators with an end-to-end audit trail describing why every execution was allowed, denied or paused for approval.
 
@@ -362,7 +362,7 @@ The audit log therefore becomes both a debugging tool and a security artifact, e
 
 # Policy Evaluation Model
 
-ArmorIQ intentionally keeps policy evaluation deterministic.
+Cossie intentionally keeps policy evaluation deterministic.
 
 The Policy Engine does not attempt to understand user intent, infer risk from natural language, or make subjective security decisions.
 
@@ -499,7 +499,7 @@ This modular approach allows new policy types to be introduced without affecting
 
 Multiple policies may theoretically apply to the same request.
 
-ArmorIQ evaluates rules according to administrator-defined priority.
+Cossie evaluates rules according to administrator-defined priority.
 
 Rules with higher precedence are evaluated first.
 
@@ -555,7 +555,7 @@ This architecture allows the authorization model to grow without increasing coup
 
 # Trust Boundaries
 
-ArmorIQ assumes that every external component should be treated as an independent trust domain.
+Cossie assumes that every external component should be treated as an independent trust domain.
 
 Rather than allowing unrestricted communication between these domains, every transition is mediated through a well-defined interface.
 
@@ -619,7 +619,7 @@ The registry abstracts communication with connected MCP servers.
 
 Whether tools originate from local custom servers or remote providers, they are exposed through the same execution interface.
 
-This abstraction allows ArmorIQ to remain independent of specific MCP implementations while maintaining a consistent authorization model.
+This abstraction allows Cossie to remain independent of specific MCP implementations while maintaining a consistent authorization model.
 
 ---
 
@@ -722,13 +722,13 @@ Discovery simply makes the tool available to the platform.
 
 Authorization remains entirely under administrator control through runtime policies.
 
-This distinction is fundamental to ArmorIQ's security model.
+This distinction is fundamental to Cossie's security model.
 
 ---
 
 # Current Limitations
 
-ArmorIQ intentionally focuses on authorization at the tool execution boundary.
+Cossie intentionally focuses on authorization at the tool execution boundary.
 
 Several production-oriented capabilities remain outside the current implementation.
 
@@ -774,7 +774,7 @@ Because authorization is isolated within the Policy Engine, these capabilities c
 
 # Summary
 
-ArmorIQ treats AI-generated tool requests as untrusted operations until they have successfully passed through an independent authorization layer.
+Cossie treats AI-generated tool requests as untrusted operations until they have successfully passed through an independent authorization layer.
 
 The language model determines intent.
 

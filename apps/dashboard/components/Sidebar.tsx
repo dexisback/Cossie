@@ -77,7 +77,7 @@ export function Sidebar({ activeTab, onChangeTab }: SidebarProps) {
         <div className="flex items-center gap-3">
           <img
             src="/logo.png"
-            alt="ArmorIQ Logo"
+            alt="Cossie Logo"
             className="h-7 w-7 object-contain rounded shadow-sm shrink-0"
           />
           {!isCollapsed && (
@@ -87,7 +87,7 @@ export function Sidebar({ activeTab, onChangeTab }: SidebarProps) {
               transition={{ duration: 0.15 }}
             >
               <h1 className="text-base font-medium tracking-tight text-foreground leading-none">
-                ArmorIQ
+                Cossie
               </h1>
             </motion.div>
           )}

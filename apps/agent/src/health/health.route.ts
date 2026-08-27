@@ -1,5 +1,5 @@
-import { registry } from "@armoriq/mcp-registry";
-import { prisma } from "@armoriq/db";
+import { registry } from "@cossie/mcp-registry";
+import { prisma } from "@cossie/db";
 import { Router } from "express";
 import { MODELS, DEFAULT_PROVIDER, FALLBACK_PROVIDER } from "../lib/models.js";
 import { MCP_SERVERS } from "../config/mcp-servers.js";

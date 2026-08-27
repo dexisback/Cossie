@@ -12,9 +12,9 @@ import type {
   PolicyRequest,
   PolicyTraceStep,
   RiskBasedRule,
-} from "@armoriq/shared-types";
+} from "@cossie/shared-types";
 
-import { PolicyDecisionTypeSchema } from "@armoriq/shared-types";
+import { PolicyDecisionTypeSchema } from "@cossie/shared-types";
 
 import { matchesApprovalRule } from "./rule-matcher/approval.rule.js";
 import { matchesBlockToolRule } from "./rule-matcher/block-tool.rule.js";
