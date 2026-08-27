@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 
 :root {
     --background: #fafaf9;
@@ -403,4 +405,64 @@ body {
         inset 0 0 0 1px rgba(255, 255, 255, 0.02),
         inset 0 1px 0 rgba(255, 255, 255, 0.02),
         inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+}
+
+/* ---------------------------------------------------------------------------
+   Fumadocs theme integration — map Fumadocs tokens onto the app design system
+   (CTA #d15e41, surface colors, tight radii, Inter / Geist Mono).
+--------------------------------------------------------------------------- */
+:root {
+    --color-fd-background: #fafaf9;
+    --color-fd-foreground: #18181b;
+    --color-fd-muted: #f4f4f5;
+    --color-fd-muted-foreground: #71717a;
+    --color-fd-popover: #ffffff;
+    --color-fd-popover-foreground: #18181b;
+    --color-fd-card: #ffffff;
+    --color-fd-card-foreground: #18181b;
+    --color-fd-border: #e4e4e7;
+    --color-fd-primary: #d15e41;
+    --color-fd-primary-foreground: #ffffff;
+    --color-fd-secondary: #f4f4f5;
+    --color-fd-secondary-foreground: #18181b;
+    --color-fd-accent: rgba(209, 94, 65, 0.1);
+    --color-fd-accent-foreground: #d15e41;
+    --color-fd-ring: #d15e41;
+}
+
+.dark {
+    --color-fd-background: #050507;
+    --color-fd-foreground: #fafafa;
+    --color-fd-muted: #121217;
+    --color-fd-muted-foreground: #a1a1aa;
+    --color-fd-popover: #0a0a0c;
+    --color-fd-popover-foreground: #fafafa;
+    --color-fd-card: #0a0a0c;
+    --color-fd-card-foreground: #fafafa;
+    --color-fd-border: #1e1e24;
+    --color-fd-primary: #d15e41;
+    --color-fd-primary-foreground: #ffffff;
+    --color-fd-secondary: #121217;
+    --color-fd-secondary-foreground: #fafafa;
+    --color-fd-accent: rgba(209, 94, 65, 0.14);
+    --color-fd-accent-foreground: #d15e41;
+    --color-fd-ring: #d15e41;
+}
+
+/* Keep the docs chrome readable: the app body paints a textured grid, which
+   would show through the docs layout unless the layout surfaces are opaque. */
+#nd-docs-layout,
+#nd-docs-layout > div {
+    background-color: var(--color-fd-background);
+}
+
+/* Docs typography uses the app fonts */
+.docs-font,
+#nd-docs-layout {
+    font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+#nd-docs-layout code,
+#nd-docs-layout pre {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
 }

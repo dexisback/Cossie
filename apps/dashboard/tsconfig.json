@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/.source": ["./.source/server.ts"]
     }
   },
   "include": [

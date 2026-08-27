@@ -16,6 +16,7 @@ export async function loadRules() {
     .map(rule => {
       const parsed = RuleSchema.safeParse({
         ...(rule.config as any),
+        type: rule.type,
         name: rule.name,
         description: rule.description ?? undefined,
       });

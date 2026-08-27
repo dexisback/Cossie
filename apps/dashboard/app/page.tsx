@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Sidebar, TabType } from "../components/Sidebar";
 import { OverviewView } from "../components/OverviewView";
 import { PoliciesView } from "../components/PoliciesView";
@@ -149,16 +150,14 @@ export default function Home() {
               )}
             </div>
             <div className="h-4 w-[1px] bg-border" />
-            <a
-              href="https://github.com/dexisback/cossie/tree/main/docs"
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/docs"
               onClick={() => sound.playTap()}
               className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-semibold text-foreground hover:bg-muted/70 cursor-pointer transition-[color,background-color,border-color,transform] duration-150 ease-out active:scale-[0.96] hover:text-accent"
             >
               <BookOpen size={11} className="text-muted-foreground" />
               <span>Docs</span>
-            </a>
+            </Link>
             <div className="h-4 w-[1px] bg-border" />
             <a
               href="https://github.com/dexisback/cossie"

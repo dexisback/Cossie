@@ -27,6 +27,8 @@ async function main() {
   await prisma.toolCatalog.deleteMany();
 
   // ---------- Rules ----------
+  // NOTE: each config must be a valid `RuleSchema` payload from
+  // `@cossie/shared-types` — including the `type` discriminator.
   const rules = [
     {
       name: "Block Dangerous Commands",
@@ -34,7 +36,7 @@ async function main() {
       type: "BLOCK_TOOL",
       priority: 1,
       enabled: true,
-      config: { toolNames: ["delete_server", "drop_database"] },
+      config: { type: "BLOCK_TOOL", toolNames: ["delete_server", "drop_database"] },
     },
     {
       name: "Restart Server Approval",
@@ -42,7 +44,7 @@ async function main() {
       type: "REQUIRE_APPROVAL",
       priority: 10,
       enabled: true,
-      config: { toolNames: ["restart_server"] },
+      config: { type: "REQUIRE_APPROVAL", toolNames: ["restart_server"] },
     },
     {
       name: "Rollback Release Approval",
@@ -50,7 +52,7 @@ async function main() {
       type: "REQUIRE_APPROVAL",
       priority: 15,
       enabled: true,
-      config: { toolNames: ["rollback_release"] },
+      config: { type: "REQUIRE_APPROVAL", toolNames: ["rollback_release"] },
     },
     {
       name: "Deploy Release Approval",
@@ -58,34 +60,36 @@ async function main() {
       type: "REQUIRE_APPROVAL",
       priority: 20,
       enabled: true,
-      config: { toolNames: ["deploy_release"] },
+      config: { type: "REQUIRE_APPROVAL", toolNames: ["deploy_release"] },
     },
     {
-      name: "Version Format Validation",
-      description: "Enforce semantic versioning on deploy/rollback inputs.",
+      name: "Sandbox Path Validation",
+      description:
+        "Restrict path-capable tools (e.g. write_file) to the /sandbox/ prefix.",
       type: "INPUT_VALIDATION",
       priority: 30,
       enabled: true,
       config: {
-        toolNames: ["deploy_release", "rollback_release"],
-        pattern: "^v?\\d+\\.\\d+\\.\\d+$",
+        type: "INPUT_VALIDATION",
+        toolName: "write_file",
+        allowedPrefix: "/sandbox/",
       },
     },
     {
-      name: "Daily Deployment Budget",
-      description: "Cap the number of deployments allowed per day.",
+      name: "Conversation Token Budget",
+      description: "Cap total token usage per conversation.",
       type: "BUDGET_LIMIT",
       priority: 40,
       enabled: true,
-      config: { maxDeploymentsPerDay: 25 },
+      config: { type: "BUDGET_LIMIT", maxTokens: 50000 },
     },
     {
-      name: "Suspicious Input Risk Escalation",
-      description: "Escalate risk when arguments contain dangerous patterns.",
+      name: "Critical Risk Approval",
+      description: "Any tool classified CRITICAL requires manual approval.",
       type: "RISK_BASED",
       priority: 50,
       enabled: true,
-      config: { patterns: ["rm -rf", "curl | sh", "; DROP TABLE"] },
+      config: { type: "RISK_BASED", riskLevel: "CRITICAL" },
     },
   ];
 
