@@ -1,1204 +1,140 @@
-# 03-policy-engine.md (Part 1)
-
 # Policy Engine
 
-The Policy Engine is the core security component of Cossie.
+The Policy Engine is the core security component of Cossie. Its responsibility is simple: decide whether an AI agent is allowed to execute a requested action. It sits between the LLM and the MCP Registry, so every tool invocation is evaluated against administrator-defined guardrails before execution.
 
-Its responsibility is simple:
+It is an intentionally standalone package, independent of Express, Prisma, Redis, Gemini, Groq, and MCP transports. It is stateless, deterministic, pure business logic: fast, predictable, easily testable, and extensible.
 
-> Decide whether an AI agent is allowed to execute a requested action.
+## Responsibilities
 
-The engine sits between the LLM and the MCP Registry, ensuring that every tool invocation is evaluated against administrator-defined guardrails before execution.
+Responsible for:
 
-It is intentionally designed as a standalone package so that it remains independent of Express, Prisma, Redis, Gemini, Groq, and MCP transports.
+- Evaluating policy rules
+- Producing authorization decisions
+- Generating evaluation traces
+- Applying deterministic rule precedence (first match wins, ascending priority)
 
----
+Not responsible for:
 
-# Responsibilities
+- Loading rules from the database
+- Discovering or executing MCP tools
+- Logging
+- Persisting approvals
+- HTTP handling
 
-The Policy Engine is responsible for:
+## Inputs
 
-* Evaluating policy rules
-* Producing authorization decisions
-* Generating evaluation traces
-* Applying deterministic rule precedence
+The engine evaluates three inputs:
 
-It is **not** responsible for:
+1. **Policy Request** — the attempted action: `conversationId`, `toolName`, and `args` (e.g. `restart_server` with `{ serverId: "srv-1" }`).
+2. **Active Rules** — a validated, in-memory list of enabled rules supplied by the Rule Cache. The engine assumes they are already loaded, validated, and sorted by priority.
+3. **Runtime Context** — contextual information influencing evaluation. Currently includes tool risk level and token usage (for budget rules). Future versions could include user identity, organization, environment, time of day, or geographic region.
 
-* Loading rules from the database
-* Discovering MCP tools
-* Executing tools
-* Logging
-* Persisting approvals
-* HTTP handling
+## Output
 
----
+Every evaluation produces exactly one `PolicyDecision`:
 
-# Inputs
+| Decision           | Meaning                                      |
+| ------------------ | -------------------------------------------- |
+| `ALLOW`            | The action may proceed                       |
+| `DENY`             | The action is blocked                        |
+| `REQUIRE_APPROVAL` | Execution pauses until a human approves      |
 
-The engine evaluates three inputs.
+The engine never throws authorization exceptions; callers always receive a structured decision describing the outcome. Each decision includes the decision type, a human-readable reason, the matched rule (or `null` when allowed by default with no violations, e.g. reason `"No policy violations detected"`), an optional approval ID, and an evaluation trace.
 
-### Policy Request
+## Evaluation Pipeline
 
-Represents the attempted action.
-
-Example:
-
-```text
-Tool:
-restart_server
-
-Arguments:
-{
-  serverId: "srv-1"
-}
+```
+Tool Request → Policy Request → Rule Iteration → Rule Match → Decision → Trace → Return
 ```
 
----
+Rules are evaluated sequentially in **ascending priority order**. Each rule follows the same lifecycle: does it match? If not, evaluation continues to the next rule; if it matches, evaluation stops immediately and that rule's decision becomes the outcome ("first match wins"). This guarantees deterministic conflict resolution — for example, if priority 1 blocks `restart_server` and priority 10 requires approval for it, a restart request is always denied because the higher-priority rule matches first.
 
-### Active Rules
+### Matchers and Evaluators
 
-A validated, in-memory list of enabled rules supplied by the Rule Cache.
+Each rule type has its own matcher (`matchesBlockToolRule()`, `matchesApprovalRule()`, `matchesRiskRule()`, `matchesBudgetRule()`, `matchesInputValidationRule()`). Matchers answer only one question — "does this rule apply to the current request?" — and never create decisions.
 
-The engine assumes these rules have already been:
+Each matcher is wrapped by an evaluator (e.g. `evaluateApprovalRule()` calls `matchesApprovalRule()`); on a match, the evaluator constructs the decision, reason, trace, and matched rule. This makes every authorization decision explainable.
 
-* Loaded
-* Validated
-* Sorted by priority
+### Evaluation Trace
 
----
+The engine records a trace of every rule processed during evaluation, e.g. `BLOCK_TOOL → Matched → Decision: DENY`. Traces provide explainability for administrators and are returned with the final decision so dashboards can display them later.
 
-### Runtime Context
+### Performance and Failure Handling
 
-Additional contextual information that influences evaluation.
+Evaluation contacts no external systems — no database queries, Redis calls, network requests, or LLM invocations. Everything operates on in-memory data structures, keeping policy evaluation extremely fast.
 
-Current context includes:
+The engine assumes all rules are valid: validation happens before rules enter the cache, so malformed rules are rejected at load time rather than during evaluation. This keeps the evaluation loop simple and predictable.
 
-* Tool risk level
-* Token usage (budget rules)
+## Supported Rule Types
 
-Future versions could include:
+Five rule categories are supported. All follow the same evaluation model while enforcing different governance constraints; each rule is evaluated independently and knows nothing about other rule types.
 
-* User identity
-* Organization
-* Environment
-* Time of day
-* Geographic region
+| Type              | Purpose                                        | Example configuration                                                                                                              | Matching / decision behavior                                                        | Typical use cases                                                          |
+| ----------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `BLOCK_TOOL`      | Prevent specific tools from ever executing     | `{ "type": "BLOCK_TOOL", "toolNames": ["restart_server", "delete_server"] }`                                                        | `toolNames.includes(tool)`; match → `DENY`                                           | Dangerous admin actions, disabled production tools, temporary restrictions |
+| `REQUIRE_APPROVAL`| Pause execution until a human approves         | `{ "type": "REQUIRE_APPROVAL", "toolNames": ["restart_server"] }`                                                                   | Match → `REQUIRE_APPROVAL`; an approval record is created and execution is paused    | Infrastructure changes, production deployments, high-risk ops, financial transactions |
+| `INPUT_VALIDATION`| Validate tool arguments before execution       | `{ "type": "INPUT_VALIDATION", "toolName": "write_file", "allowedPrefix": "/sandbox/" }`                                            | Inspects arguments for the given tool; valid → `ALLOW`, invalid → `VALIDATION_FAILED`| File path restrictions, input sanitization, directory allowlists           |
+| `RISK_BASED`      | Apply policies based on a tool's risk classification | `{ "type": "RISK_BASED", "riskLevel": "CRITICAL" }`                                                                           | Matches on **exact** risk-level equality (`rule.riskLevel === tool risk`); match → rule applies as a block | Blocking all CRITICAL (or HIGH) tools without listing them individually |
+| `BUDGET_LIMIT`    | Prevent excessive resource consumption         | `{ "type": "BUDGET_LIMIT", "maxTokens": 50000 }`                                                                                    | `currentTokens >= maxTokens`; match → `BUDGET_EXCEEDED`                              | Conversation-level token limits (current implementation)                   |
 
----
+Notes:
 
-# Outputs
+- For `RISK_BASED`, matching is exact equality against the effective risk level — set one rule per level you want to govern rather than relying on thresholds.
+- The engine returns six decision types in total: the three headline outcomes above plus `VALIDATION_FAILED`, `BUDGET_EXCEEDED`, and `ERROR`. All non-`ALLOW` decisions surface to users as `"Tool blocked: <reason>"`.
+- `BUDGET_LIMIT` compares conversation token usage from runtime context; future versions could extend this to daily/monthly quotas, per-user or per-organization limits, and cost-based budgets.
 
-Every evaluation produces exactly one `PolicyDecision`.
+## Rule Lifecycle and Loading
 
-Current decision types:
+Rules persist in PostgreSQL but never reach the engine directly from the database. The full lifecycle separates persistence from runtime execution:
 
-```text
-ALLOW
-
-DENY
-
-REQUIRE_APPROVAL
+```
+Dashboard → Database → Rule Loader → Validation → Rule Cache → Policy Engine → Evaluation → Decision
 ```
 
-The engine never throws authorization exceptions.
+On application start, the Rule Loader fetches enabled rules from PostgreSQL, sorts them by priority, validates them with Zod, converts them to runtime rules, and populates the Rule Cache. From then on, the engine reads only from memory.
 
-Instead, callers receive a structured decision describing the outcome.
+### Rule Cache
 
----
+The Rule Cache holds the active policy set. It provides fast access during evaluation and eliminates database reads from the request path. It is read-only during normal execution; only the Rule Loader updates it.
 
-# Evaluation Philosophy
+### Redis Synchronization
 
-The engine follows a deterministic "first match wins" strategy.
+Policy changes must take effect immediately without restarting the agent, so the backend uses Redis Pub/Sub:
 
-Example:
-
-```text
-Priority 1
-
-Block restart_server
-
-↓
-
-Priority 10
-
-Require approval for restart_server
+```
+Dashboard → Create/Update Rule → Database → Redis Publish → Agent Subscriber → Rule Loader → Rule Cache Updated
 ```
 
-A restart request will always be denied because the higher-priority rule matches first.
+Without synchronization, applying a new rule would require a backend restart. With Pub/Sub, the next request automatically uses the updated policy set.
 
-This guarantees predictable behavior.
+### Reliability
 
----
+The design favors stability over aggressive synchronization and fails safely:
 
-# Policy Trace
+- **Invalid rule configuration** → rejected during loading; never enters the Rule Cache.
+- **Redis unavailable** → the existing cache continues operating; no interruption to policy evaluation.
+- **Database temporarily unavailable** → existing rules remain active; reload resumes once connectivity returns.
 
-Every evaluation records a trace of rule processing.
+## Extending the Engine
 
-Example:
+Adding a new rule type requires four steps:
 
-```text
-BLOCK_TOOL
-
-Matched
-
-↓
-
-Decision: DENY
-```
-
-or
-
-```text
-BLOCK_TOOL
-
-Skipped
-
-↓
-
-INPUT_VALIDATION
-
-Matched
-
-↓
-
-Decision: DENY
-```
-
-These traces provide explainability for administrators and are intended to power future dashboard visualizations.
-
----
-
-# Evaluation Pipeline
-
-Every tool request follows the same sequence.
-
-```text
-Tool Request
-
-↓
-
-Policy Request
-
-↓
-
-Rule Iteration
-
-↓
-
-Rule Match
-
-↓
-
-Decision
-
-↓
-
-Trace
-
-↓
-
-Return
-```
-
-No external systems are contacted during evaluation.
-
-This keeps the engine fast, deterministic, and easily testable.
-
----
-
-# Design Principles
-
-The Policy Engine follows several guiding principles.
-
-* Stateless
-* Deterministic
-* Pure business logic
-* Infrastructure independent
-* Easily extensible
-
-These principles make the engine reusable outside the current application and allow future rule types to be added with minimal changes.
-
----
-
-The following sections explain how rules are evaluated internally, how each rule type works, and how new guardrails can be added to the engine.
-
-
----
-# 03-policy-engine.md (Part 2)
-
-# Rule Evaluation Pipeline
-
-Every tool request entering the Policy Engine follows the same evaluation process.
-
-The engine does not know where the request came from or how the decision will be used.
-
-Its only responsibility is to evaluate the request against the active policy set.
-
----
-
-# Evaluation Flow
-
-The complete evaluation pipeline is:
-
-```text id="9ckx6r"
-PolicyRequest
-
-↓
-
-Rule Cache
-
-↓
-
-Rule 1
-
-↓
-
-Rule 2
-
-↓
-
-Rule 3
-
-↓
-
-Decision
-
-↓
-
-Return PolicyDecision
-```
-
-Rules are evaluated sequentially in ascending priority order.
-
----
-
-# Rule Priority
-
-Each rule contains a priority value.
-
-Example:
-
-| Priority | Rule                                |
-| -------- | ----------------------------------- |
-| 1        | Block restart_server                |
-| 5        | Require approval for restart_server |
-| 10       | Risk-based approval                 |
-
-The engine always evaluates lower numbers first.
-
-This guarantees deterministic conflict resolution.
-
----
-
-# Rule Evaluation
-
-Each rule follows the same lifecycle.
-
-```text id="4t4vxf"
-Receive Rule
-
-↓
-
-Does it Match?
-
-↓
-
-No
-
-↓
-
-Continue
-
-↓
-
-Yes
-
-↓
-
-Build Decision
-
-↓
-
-Return
-```
-
-If a rule does not match, evaluation continues.
-
-If a rule matches, evaluation stops immediately.
-
----
-
-# Matchers
-
-Every rule type has its own matcher.
-
-Examples:
-
-```text id="9kkfyy"
-matchesBlockToolRule()
-
-matchesApprovalRule()
-
-matchesRiskRule()
-
-matchesBudgetRule()
-
-matchesInputValidationRule()
-```
-
-Matchers answer one question:
-
-> Does this rule apply to the current request?
-
-They never create decisions.
-
----
-
-# Evaluators
-
-Each matcher is wrapped by an evaluator.
-
-Example:
-
-```text id="fjsl2z"
-evaluateApprovalRule()
-
-↓
-
-matchesApprovalRule()
-
-↓
-
-Matched?
-
-↓
-
-Create PolicyDecision
-```
-
-Evaluators construct:
-
-* Decision
-* Reason
-* Trace
-* Matched Rule
-
----
-
-# Decision Construction
-
-Every successful evaluation returns a structured decision.
-
-Example:
-
-```text id="48p41u"
-Decision
-
-ALLOW
-
-Reason
-
-"No policy violations detected"
-
-Matched Rule
-
-null
-```
-
-or
-
-```text id="nyc0lt"
-Decision
-
-DENY
-
-Reason
-
-"restart_server is blocked"
-
-Matched Rule
-
-"Block Restart"
-```
-
-This makes every authorization decision explainable.
-
----
-
-# Evaluation Trace
-
-The engine records every rule that was evaluated.
-
-Example:
-
-```text id="wdmgv8"
-Rule
-
-Block Restart
-
-Matched
-
-✓
-
-----------
-
-Rule
-
-Approval Rule
-
-Skipped
-```
-
-These traces are returned with the final decision and can later be displayed in the dashboard.
-
----
-
-# Performance
-
-The evaluation process is lightweight.
-
-No:
-
-* Database queries
-* Redis calls
-* Network requests
-* LLM invocations
-
-occur during evaluation.
-
-Everything operates on in-memory data structures.
-
-This keeps policy evaluation extremely fast.
-
----
-
-# Failure Handling
-
-The engine assumes all rules are valid.
-
-Validation occurs before rules enter the cache.
-
-If a malformed rule exists, it is rejected during loading rather than during evaluation.
-
-This keeps the evaluation loop simple and predictable.
-
----
-
-# Extending Evaluation
-
-Adding a new rule requires only four steps:
-
-1. Define a new rule schema.
+1. Define a new rule schema (Zod schema + TypeScript type).
 2. Implement a matcher.
 3. Implement an evaluator.
-4. Register the evaluator in the engine.
+4. Register the evaluator in the Policy Engine.
 
-Existing rule implementations remain unchanged.
+Existing rule implementations remain unchanged (Open/Closed Principle). Plausible future rule types fit into this pipeline without architectural changes: time-based restrictions, user/role-based permissions, organization-specific policies, IP/geographic restrictions, maximum execution time, tool rate limits, conversation allowlists, and multi-stage approval workflows.
 
-This follows the Open/Closed Principle and keeps the engine easy to extend as new guardrails are introduced.
+Other potential enhancements:
 
----
+- **Policy versioning** — track every change and roll back to previous versions.
+- **Policy simulator** — test a request against policies without executing the tool.
+- **Rule groups** — logical collections (Production, Development, Finance, Infrastructure).
+- **Conditional rules** — richer expressions (only after business hours, only for production servers, only for specific users, combined conditions).
+- **Approval chains** — sequential multi-approver flows (Developer → Team Lead → Security → Execute).
+- **Metrics** — rules evaluated, average evaluation latency, most frequently matched rules, blocked requests, approval rate.
 
-The next section covers every supported rule type, how it works, and when it should be used.
+## Summary
 
----
-# 03-policy-engine.md (Part 3)
-
-# Supported Rule Types
-
-The current Policy Engine supports five rule categories.
-
-Each rule addresses a different aspect of AI agent governance.
-
-All rule types follow the same evaluation model while enforcing different security constraints.
-
----
-
-# BLOCK_TOOL
-
-Purpose:
-
-Prevent specific tools from ever executing.
-
-Example configuration:
-
-```json
-{
-  "type": "BLOCK_TOOL",
-  "toolNames": [
-    "restart_server",
-    "delete_server"
-  ]
-}
-```
-
-Evaluation:
-
-```text
-Tool Request
-
-↓
-
-Tool Name
-
-↓
-
-toolNames.includes(...)
-
-↓
-
-Match?
-
-↓
-
-DENY
-```
-
-Typical use cases:
-
-* Dangerous administrative actions
-* Disabled production tools
-* Temporary operational restrictions
-
----
-
-# REQUIRE_APPROVAL
-
-Purpose:
-
-Pause execution until a human approves the request.
-
-Example configuration:
-
-```json
-{
-  "type": "REQUIRE_APPROVAL",
-  "toolNames": [
-    "restart_server"
-  ]
-}
-```
-
-Evaluation:
-
-```text
-Tool Request
-
-↓
-
-Rule Match
-
-↓
-
-REQUIRE_APPROVAL
-
-↓
-
-Approval Record Created
-
-↓
-
-Execution Paused
-```
-
-Typical use cases:
-
-* Infrastructure changes
-* Production deployments
-* High-risk operations
-* Financial transactions
-
----
-
-# INPUT_VALIDATION
-
-Purpose:
-
-Validate tool arguments before execution.
-
-Example configuration:
-
-```json
-{
-  "type": "INPUT_VALIDATION",
-  "toolName": "write_file",
-  "allowedPrefix": "/sandbox/"
-}
-```
-
-Evaluation:
-
-```text
-Tool Request
-
-↓
-
-Inspect Arguments
-
-↓
-
-Valid?
-
-↓
-
-ALLOW
-
-or
-
-DENY
-```
-
-Typical use cases:
-
-* File path restrictions
-* Input sanitization
-* Parameter validation
-* Directory allowlists
-
----
-
-# RISK_BASED
-
-Purpose:
-
-Apply policies based on a tool's runtime risk classification.
-
-Example configuration:
-
-```json
-{
-  "type": "RISK_BASED",
-  "minimumRisk": "HIGH",
-  "decision": "REQUIRE_APPROVAL"
-}
-```
-
-Evaluation:
-
-```text
-Tool Risk
-
-↓
-
-Compare Threshold
-
-↓
-
-Decision
-```
-
-Because risk is stored separately from policy, administrators can change a tool's classification without modifying the policy itself.
-
----
-
-# BUDGET_LIMIT
-
-Purpose:
-
-Prevent excessive resource consumption.
-
-Example configuration:
-
-```json
-{
-  "type": "BUDGET_LIMIT",
-  "maxTokens": 50000
-}
-```
-
-Evaluation:
-
-```text
-Current Usage
-
-↓
-
-Compare Budget
-
-↓
-
-ALLOW
-
-or
-
-DENY
-```
-
-The current implementation supports conversation-level token checks.
-
-Future versions could extend this to:
-
-* Daily quotas
-* Monthly budgets
-* Per-user limits
-* Per-organization limits
-* Cost-based budgets
-
----
-
-# Rule Independence
-
-Every rule is evaluated independently.
-
-A Block rule never knows about Approval rules.
-
-Approval rules never know about Budget rules.
-
-This isolation keeps implementations simple and minimizes coupling.
-
----
-
-# Conflict Resolution
-
-Conflicting rules are resolved using priority.
-
-Example:
-
-| Priority | Rule             | Decision         |
-| -------- | ---------------- | ---------------- |
-| 1        | Block Restart    | DENY             |
-| 10       | Require Approval | REQUIRE_APPROVAL |
-
-Since the Block rule is evaluated first, the final decision is **DENY**.
-
-No ambiguity exists.
-
----
-
-# Rule Lifecycle
-
-Every rule follows the same lifecycle.
-
-```text
-Dashboard
-
-↓
-
-Database
-
-↓
-
-Rule Loader
-
-↓
-
-Validation
-
-↓
-
-Rule Cache
-
-↓
-
-Policy Engine
-
-↓
-
-Evaluation
-
-↓
-
-Decision
-```
-
-This architecture separates persistence from runtime execution.
-
----
-
-# Extending the Engine
-
-The current architecture makes new rule types straightforward to implement.
-
-A new rule typically requires:
-
-* A new Zod schema
-* A TypeScript type
-* A matcher
-* An evaluator
-* Registration in the Policy Engine
-
-No existing rule implementations need to change.
-
-This allows the engine to grow without becoming increasingly complex.
-
----
-
-# Future Rule Types
-
-The architecture can naturally support additional policies such as:
-
-* Time-based restrictions
-* User or role-based permissions
-* Organization-specific policies
-* IP or geographic restrictions
-* Maximum execution time
-* Tool rate limits
-* Conversation allowlists
-* Multi-stage approval workflows
-
-Because the engine is modular, these additions fit into the existing evaluation pipeline without architectural changes.
-
----
-
-The final section covers runtime caching, Redis synchronization, rule loading, and future improvements to the Policy Engine.
-
-
----
-# 03-policy-engine.md (Part 4)
-
-# Rule Loading & Runtime Synchronization
-
-The Policy Engine never communicates directly with the database.
-
-Instead, it evaluates an in-memory collection of validated rules.
-
-This separation keeps policy evaluation fast, deterministic, and independent of persistence.
-
----
-
-# Rule Loading Pipeline
-
-Whenever the application starts, the Rule Loader performs the following sequence.
-
-```text id="esij5n"
-PostgreSQL
-
-↓
-
-Fetch Enabled Rules
-
-↓
-
-Sort By Priority
-
-↓
-
-Validate With Zod
-
-↓
-
-Convert To Runtime Rules
-
-↓
-
-Populate Rule Cache
-
-↓
-
-Ready
-```
-
-After this point, the Policy Engine only reads from memory.
-
----
-
-# Rule Cache
-
-The Rule Cache stores the active policy set.
-
-Responsibilities:
-
-* Hold validated runtime rules
-* Provide fast access during evaluation
-* Eliminate database reads from the request path
-
-The cache is read-only during normal execution.
-
-Only the Rule Loader updates it.
-
----
-
-# Redis Synchronization
-
-Policy changes should become effective immediately without restarting the agent.
-
-To achieve this, the backend uses Redis Pub/Sub.
-
-Flow:
-
-```text id="2jol2h"
-Dashboard
-
-↓
-
-Create / Update Rule
-
-↓
-
-Database
-
-↓
-
-Redis Publish
-
-↓
-
-Agent Subscriber
-
-↓
-
-Rule Loader
-
-↓
-
-Rule Cache Updated
-```
-
-The next request automatically uses the updated policy set.
-
----
-
-# Why Pub/Sub?
-
-Without synchronization:
-
-```text id="8jodza"
-Rule Updated
-
-↓
-
-Restart Backend
-
-↓
-
-New Rule Active
-```
-
-With Redis:
-
-```text id="w1ahki"
-Rule Updated
-
-↓
-
-Publish Event
-
-↓
-
-Reload Rules
-
-↓
-
-Done
-```
-
-This enables real-time policy management.
-
----
-
-# Runtime Performance
-
-Policy evaluation is intentionally lightweight.
-
-For each tool request:
-
-* No database queries
-* No Redis communication
-* No network requests
-
-Only:
-
-```text id="ez4s3x"
-Policy Request
-
-↓
-
-Rule Cache
-
-↓
-
-Evaluation
-
-↓
-
-Decision
-```
-
-This makes the authorization layer extremely fast.
-
----
-
-# Reliability
-
-The engine is designed to fail safely.
-
-Examples:
-
-Invalid rule configuration
-
-↓
-
-Rejected during loading
-
-↓
-
-Never enters Rule Cache
-
----
-
-Redis unavailable
-
-↓
-
-Existing cache continues operating
-
-↓
-
-No interruption to policy evaluation
-
----
-
-Database temporarily unavailable
-
-↓
-
-Existing rules remain active
-
-↓
-
-Reload resumes once connectivity returns
-
-This design favors stability over aggressive synchronization.
-
----
-
-# Current Capabilities
-
-The Policy Engine currently supports:
-
-* Block tool execution
-* Human approval workflows
-* Input validation
-* Risk-based policies
-* Token budget enforcement
-* Rule priority
-* Evaluation traces
-* Runtime rule reloads
-* Prompt injection awareness (handled before evaluation)
-* Risk overrides (resolved before evaluation)
-
-Together, these features satisfy the project requirements while remaining modular and extensible.
-
----
-
-# Future Improvements
-
-Potential enhancements include:
-
-### Policy Versioning
-
-Track every policy change and allow rollback to previous versions.
-
----
-
-### Policy Simulator
-
-Test a request against policies without executing the tool.
-
-Useful for administrators before deploying new guardrails.
-
----
-
-### Rule Groups
-
-Organize policies into logical collections.
-
-Examples:
-
-* Production
-* Development
-* Finance
-* Infrastructure
-
----
-
-### Conditional Rules
-
-Support richer expressions.
-
-Examples:
-
-* Only after business hours
-* Only for production servers
-* Only for specific users
-* Multiple conditions combined
-
----
-
-### Approval Chains
-
-Instead of a single approver:
-
-```text id="6d5ym2"
-Developer
-
-↓
-
-Team Lead
-
-↓
-
-Security
-
-↓
-
-Execute
-```
-
----
-
-### Metrics
-
-Expose runtime statistics such as:
-
-* Rules evaluated
-* Average evaluation latency
-* Most frequently matched rules
-* Blocked requests
-* Approval rate
-
-These metrics would provide valuable operational insight.
-
----
-
-# Summary
-
-The Policy Engine is the authorization core of Cossie.
-
-It operates entirely on validated in-memory rules, produces deterministic authorization decisions, and remains independent of infrastructure concerns.
-
-By separating rule loading, caching, synchronization, and evaluation into distinct responsibilities, the engine remains:
-
-* Fast
-* Predictable
-* Modular
-* Easily testable
-* Straightforward to extend
-
-Its architecture allows new guardrails to be introduced with minimal changes while keeping existing behavior stable.
-
----
-
-# Document Summary
-
-This document covered:
-
-* Policy Engine responsibilities
-* Evaluation pipeline
-* Rule matching
-* Supported rule types
-* Priority resolution
-* Rule loading
-* Runtime caching
-* Redis synchronization
-* Current capabilities
-* Future enhancements
-
-With this, the complete design and operation of the Policy Engine is documented.
-
-The next document, **04-frontend-architecture.md**, will describe the dashboard architecture, page structure, component hierarchy, state management, API integration, UX philosophy, and how the frontend interacts with the backend in real time.
-
-
----
-
+The Policy Engine evaluates a `PolicyRequest` against validated in-memory rules in ascending priority order using first-match-wins semantics, returning a deterministic `PolicyDecision` (with reason, matched rule, and trace) without touching infrastructure. Rule loading, caching (via the Rule Cache), synchronization (Redis Pub/Sub), and evaluation are separated into distinct responsibilities, allowing new guardrails to be introduced with minimal changes while existing behavior stays stable.
