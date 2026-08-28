@@ -340,7 +340,7 @@ export function PoliciesView() {
     return (
       <div className="space-y-6">
         <div className="text-center py-16 rounded-lg border border-rose-500/30 bg-rose-500/5">
-          <Shield className="mx-auto text-rose-500 mb-3" size={24} />
+          <Shield className="mx-auto text-status-critical mb-3" size={24} />
           <h3 className="text-sm font-semibold text-foreground">
             Failed to load policies
           </h3>
@@ -454,7 +454,7 @@ export function PoliciesView() {
                               <span className="text-[9px] font-mono font-medium uppercase text-muted-foreground">
                                 Action
                               </span>
-                              <p className="font-medium text-rose-500 dark:text-rose-400 mt-0.5">
+                              <p className="font-medium text-status-critical mt-0.5">
                                 Block Tool
                               </p>
                             </div>
@@ -475,7 +475,7 @@ export function PoliciesView() {
                               <span className="text-[9px] font-mono font-medium uppercase text-muted-foreground">
                                 Action
                               </span>
-                              <p className="font-medium text-amber-500 mt-0.5">
+                              <p className="font-medium text-status-warn mt-0.5">
                                 Require Human Approval
                               </p>
                             </div>
@@ -587,7 +587,7 @@ export function PoliciesView() {
                       {rule.enabled ? (
                         <ToggleOn
                           size={20}
-                          className="text-accent group-hover:drop-shadow-[0_0_4px_rgba(var(--accent-rgb),0.4)]"
+                          className="text-accent"
                           strokeWidth={1.5}
                         />
                       ) : (
@@ -607,7 +607,7 @@ export function PoliciesView() {
                     </button>
                     <button
                       onClick={() => handleDeleteRule(rule.id)}
-                      className="p-2.5 border border-border/50 hover:border-rose-500/40 hover:bg-rose-500/12 text-muted-foreground hover:text-rose-500 rounded-lg cursor-pointer transition-[background-color,border-color,color,transform,box-shadow] duration-180 ease-out active:scale-[0.96] hover:shadow-[0_0_8px_rgba(244,63,94,0.15)]"
+                      className="p-2.5 border border-border/50 hover:border-rose-500/40 hover:bg-rose-500/12 text-muted-foreground hover:text-status-critical rounded-lg cursor-pointer transition-[background-color,border-color,color,transform,box-shadow] duration-180 ease-out active:scale-[0.96] hover:shadow-[0_0_8px_rgba(244,63,94,0.15)]"
                       title="Delete Rule"
                     >
                       <DeleteIcon size={14} strokeWidth={1.5} />

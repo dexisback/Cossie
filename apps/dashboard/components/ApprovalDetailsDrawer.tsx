@@ -83,11 +83,11 @@ export function ApprovalDetailsDrawer({ approval, onClose, onSuccess }: Approval
   function getStatusBadge(status: string) {
     switch (status?.toUpperCase()) {
       case "PENDING":
-        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
+        return "chip chip-warn";
       case "APPROVED":
-        return "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
+        return "chip chip-ok";
       case "REJECTED":
-        return "bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/20";
+        return "chip chip-critical";
       case "EXPIRED":
         return "bg-stone-500/10 text-stone-500 border border-stone-500/20";
       default:
@@ -98,13 +98,13 @@ export function ApprovalDetailsDrawer({ approval, onClose, onSuccess }: Approval
   function getRiskBadge(risk: string) {
     switch (risk?.toUpperCase()) {
       case "LOW":
-        return "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
+        return "chip chip-ok";
       case "MEDIUM":
-        return "bg-blue-500/10 text-blue-500 border border-blue-500/20";
+        return "chip chip-info";
       case "HIGH":
-        return "bg-amber-500/10 text-amber-500 border border-amber-500/20";
+        return "chip chip-warn";
       case "CRITICAL":
-        return "bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/20 font-semibold";
+        return "chip chip-critical font-semibold";
       default:
         return "bg-muted text-muted-foreground border border-border";
     }
@@ -173,7 +173,7 @@ export function ApprovalDetailsDrawer({ approval, onClose, onSuccess }: Approval
                         onClick={() => copyToClipboard(approval.id, false)}
                         className="p-1 border border-border hover:border-accent/40 bg-background/50 text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer"
                       >
-                        {copiedId ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                        {copiedId ? <Check size={10} className="text-status-ok" /> : <Copy size={10} />}
                       </button>
                     </div>
                   </div>
@@ -216,7 +216,7 @@ export function ApprovalDetailsDrawer({ approval, onClose, onSuccess }: Approval
                       onClick={() => copyToClipboard(JSON.stringify(approval.arguments, null, 2), true)}
                       className="p-1 border border-border hover:border-accent/40 bg-background/50 text-muted-foreground hover:text-foreground rounded transition-colors cursor-pointer flex items-center gap-1 text-[9px] font-semibold"
                     >
-                      {copiedArgs ? <Check size={10} className="text-emerald-500" /> : <Copy size={10} />}
+                      {copiedArgs ? <Check size={10} className="text-status-ok" /> : <Copy size={10} />}
                       {copiedArgs ? "Copied" : "Copy"}
                     </button>
                   </div>
@@ -237,10 +237,10 @@ export function ApprovalDetailsDrawer({ approval, onClose, onSuccess }: Approval
 
                 <div className="space-y-3">
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Policy Decision</h4>
-                  <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-xl space-y-2">
+                  <div className="p-4 bg-muted/40 border border-border rounded-xl space-y-2">
                     <div className="flex items-center gap-2">
-                      <Shield size={14} className="text-amber-500" />
-                      <span className="text-[10px] font-mono font-semibold uppercase text-amber-500">
+                      <Shield size={14} className="text-status-warn" />
+                      <span className="text-[10px] font-mono font-semibold uppercase text-status-warn">
                         Decision: REQUIRE_APPROVAL
                       </span>
                     </div>
@@ -319,7 +319,7 @@ export function ApprovalDetailsDrawer({ approval, onClose, onSuccess }: Approval
               <button
                 disabled={resolving}
                 onClick={() => handleResolve("reject")}
-                className="px-5 py-2.5 border border-rose-500/20 hover:border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-rose-500 dark:text-rose-400 text-xs font-semibold rounded-xl cursor-pointer disabled:opacity-50 transition-colors"
+                className="px-5 py-2.5 border border-rose-500/20 hover:border-rose-500/30 bg-rose-500/5 hover:bg-rose-500/10 text-status-critical text-xs font-semibold rounded-xl cursor-pointer disabled:opacity-50 transition-colors"
               >
                 Reject
               </button>

@@ -212,13 +212,13 @@ export function CommandSearchModal({
       case "Navigation":
         return <LayoutDashboard size={14} className="text-accent" />;
       case "Tools":
-        return <Wrench size={14} className="text-blue-500" />;
+        return <Wrench size={14} className="text-status-info" />;
       case "Servers":
-        return <Server size={14} className="text-green-500" />;
+        return <Server size={14} className="text-status-ok" />;
       case "Policies":
-        return <ShieldCheck size={14} className="text-amber-500" />;
+        return <ShieldCheck size={14} className="text-status-warn" />;
       case "Audit Logs":
-        return <FileCode2 size={14} className="text-purple-500" />;
+        return <FileCode2 size={14} className="text-status-special" />;
       default:
         return <Search size={14} />;
     }

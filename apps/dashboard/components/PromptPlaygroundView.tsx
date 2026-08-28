@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  ShieldAlert,
-  Terminal,
   Send,
   AlertTriangle,
   CheckCircle2,
@@ -187,7 +185,6 @@ export function PromptPlaygroundView() {
         <div className="col-span-12 lg:col-span-7 flex flex-col gap-6">
           <div className="p-6 rounded-lg app-glass flex flex-col gap-5 app-card-3d">
             <div className="flex items-center gap-2 pb-2 border-b border-border">
-              <Terminal size={15} className="text-accent" />
               <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-foreground">
                 Testing Terminal
               </h3>
@@ -244,22 +241,22 @@ export function PromptPlaygroundView() {
             <div
               className={`p-6 rounded-2xl border transition-all ${
                 scanResult.suspicious
-                  ? "bg-rose-500/[0.02] border-rose-500/20"
-                  : "bg-emerald-500/[0.02] border-emerald-500/20"
+                  ? "bg-[color-mix(in_srgb,var(--status-critical)_4%,transparent)] border-[color-mix(in_srgb,var(--status-critical)_20%,transparent)]"
+                  : "bg-[color-mix(in_srgb,var(--status-ok)_4%,transparent)] border-[color-mix(in_srgb,var(--status-ok)_20%,transparent)]"
               }`}
             >
               <div className="flex items-center gap-2 mb-4">
                 {scanResult.suspicious ? (
                   <>
-                    <AlertTriangle size={18} className="text-rose-500" />
-                    <h4 className="text-xs font-semibold text-rose-500 uppercase tracking-wider font-mono">
+                    <AlertTriangle size={18} className="text-status-critical" />
+                    <h4 className="text-xs font-semibold text-status-critical uppercase tracking-wider font-mono">
                       Suspicious Prompt Detected
                     </h4>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 size={18} className="text-emerald-500" />
-                    <h4 className="text-xs font-semibold text-emerald-500 uppercase tracking-wider font-mono">
+                    <CheckCircle2 size={18} className="text-status-ok" />
+                    <h4 className="text-xs font-semibold text-status-ok uppercase tracking-wider font-mono">
                       Prompt Appears Safe
                     </h4>
                   </>
@@ -274,7 +271,7 @@ export function PromptPlaygroundView() {
                       <span className="text-[9px] font-mono font-medium uppercase text-muted-foreground">
                         Severity
                       </span>
-                      <p className="font-semibold text-rose-500 mt-0.5">
+                      <p className="font-semibold text-status-critical mt-0.5">
                         Medium
                       </p>
                     </div>
@@ -319,7 +316,7 @@ export function PromptPlaygroundView() {
                               key={pat}
                               className="flex items-center gap-2 text-foreground font-mono"
                             >
-                              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                              <span className="h-1.5 w-1.5 rounded-full bg-[var(--status-critical)]" />
                               {pat}
                             </li>
                           ))}
@@ -355,7 +352,6 @@ export function PromptPlaygroundView() {
           {/* Historical Logs List */}
           <div className="p-5 rounded-2xl app-glass flex flex-col min-h-[250px]">
             <div className="flex items-center gap-2 pb-2 border-b border-border mb-4">
-              <ShieldAlert size={15} className="text-muted-foreground" />
               <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-foreground">
                 Injection Log History
               </h3>
@@ -398,7 +394,7 @@ export function PromptPlaygroundView() {
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="inline-flex px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-500/20">
+                      <span className="inline-flex px-1.5 py-0.5 rounded text-[8px] font-semibold uppercase chip chip-critical">
                         Logged
                       </span>
                     </div>
@@ -467,7 +463,7 @@ export function PromptPlaygroundView() {
                 <span className="text-[9px] font-mono font-medium uppercase text-muted-foreground block mb-1">
                   Matched Patterns
                 </span>
-                <p className="font-mono font-medium text-rose-500 dark:text-rose-400">
+                <p className="font-mono font-medium text-status-critical">
                   {selectedLog.reason || "N/A"}
                 </p>
               </div>

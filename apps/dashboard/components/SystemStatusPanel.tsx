@@ -31,16 +31,16 @@ function SubsystemCard({
   metrics,
 }: SubsystemCardProps) {
   const badgeColors = {
-    healthy: "text-emerald-500",
-    warning: "text-amber-500",
-    error: "text-rose-500",
+    healthy: "text-status-ok",
+    warning: "text-status-warn",
+    error: "text-status-critical",
     unknown: "text-stone-500",
   };
 
   const dotColors = {
-    healthy: "bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.5)]",
-    warning: "bg-amber-500 shadow-[0_0_4px_rgba(245,158,11,0.5)]",
-    error: "bg-rose-500 shadow-[0_0_4px_rgba(244,63,94,0.5)]",
+    healthy: "bg-[var(--status-ok)]",
+    warning: "bg-[var(--status-warn)]",
+    error: "bg-[var(--status-critical)]",
     unknown: "bg-stone-500",
   };
 
@@ -319,8 +319,8 @@ export function SystemStatusPanel() {
       ) : (
         <>
           {error && (
-            <div className="p-3 bg-rose-500/5 border border-rose-500/20 rounded-lg flex items-start gap-2 text-[10px] text-rose-500 leading-relaxed shadow-[0_0_8px_rgba(244,63,94,0.1)]">
-              <div className="p-1 rounded-md bg-rose-500/10 border border-rose-500/20 shrink-0">
+            <div className="p-3 bg-[color-mix(in_srgb,var(--status-critical)_4%,transparent)] border-[color-mix(in_srgb,var(--status-critical)_20%,transparent)] rounded-lg flex items-start gap-2 text-[10px] text-status-critical leading-relaxed">
+              <div className="p-1 chip chip-critical shrink-0">
                 <AlertCircle size={12} strokeWidth={2} />
               </div>
               <div>Connection issue. Status may be cached.</div>

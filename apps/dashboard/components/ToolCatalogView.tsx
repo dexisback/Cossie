@@ -74,10 +74,10 @@ export function ToolCatalogView() {
 
   function getRiskTextColor(risk: string) {
     switch (risk) {
-      case "LOW":      return "text-emerald-500 dark:text-emerald-400";
-      case "MEDIUM":   return "text-blue-500";
-      case "HIGH":     return "text-amber-500";
-      case "CRITICAL": return "text-rose-500 dark:text-rose-400";
+      case "LOW":      return "text-status-ok";
+      case "MEDIUM":   return "text-status-info";
+      case "HIGH":     return "text-status-warn";
+      case "CRITICAL": return "text-status-critical";
       default:         return "text-muted-foreground";
     }
   }

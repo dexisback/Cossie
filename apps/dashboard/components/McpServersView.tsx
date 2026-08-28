@@ -133,7 +133,7 @@ export function McpServersView({}: McpServersViewProps) {
           </div>
           <div className="p-4 rounded-2xl app-glass">
             <span className="text-[9px] font-mono font-medium uppercase tracking-wider text-muted-foreground">Healthy Servers</span>
-            <div className="text-xl font-semibold text-emerald-600 dark:text-emerald-400 mt-1">{healthyServersCount}</div>
+            <div className="text-xl font-semibold text-status-ok mt-1">{healthyServersCount}</div>
           </div>
           <div className="p-4 rounded-2xl app-glass">
             <span className="text-[9px] font-mono font-medium uppercase tracking-wider text-muted-foreground">Total Discovered Tools</span>
@@ -167,9 +167,9 @@ export function McpServersView({}: McpServersViewProps) {
 
             const badgeColor =
               state === "healthy"
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                ? "bg-emerald-500/10 text-status-ok border border-emerald-500/20"
                 : state === "offline"
-                ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                ? "bg-rose-500/10 text-status-critical border border-rose-500/20"
                 : "bg-stone-500/10 text-stone-500 border border-stone-500/20";
 
             return (
@@ -184,8 +184,8 @@ export function McpServersView({}: McpServersViewProps) {
                       <Server size={16} className="text-accent" />
                       <span className="text-xs font-semibold text-foreground">{server.name}</span>
                     </div>
-                    <span className={`inline-flex items-center gap-1 text-[9px] uppercase tracking-wider ${state === "healthy" ? "text-emerald-600 dark:text-emerald-400 font-medium" : (state === "offline" ? "text-rose-600 dark:text-rose-400 font-medium" : "text-stone-500 font-medium")}`}>
-                      <span className={`h-1.5 w-1.5 rounded-full ${state === "healthy" ? "bg-emerald-500" : (state === "offline" ? "bg-rose-500" : "bg-stone-500")}`} />
+                    <span className={`inline-flex items-center gap-1 text-[9px] uppercase tracking-wider ${state === "healthy" ? "text-status-ok font-medium" : (state === "offline" ? "text-status-critical font-medium" : "text-stone-500 font-medium")}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${state === "healthy" ? "bg-[var(--status-ok)]" : (state === "offline" ? "bg-[var(--status-critical)]" : "bg-stone-500")}`} />
                       {status}
                     </span>
                   </div>
@@ -270,9 +270,9 @@ interface ServerDetailsDrawerProps {
 function ServerDetailsDrawer({ server, tools, status, onClose }: ServerDetailsDrawerProps) {
   const badgeColor =
     status.state === "healthy"
-      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+      ? "bg-emerald-500/10 text-status-ok border border-emerald-500/20"
       : status.state === "offline"
-      ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+      ? "bg-rose-500/10 text-status-critical border border-rose-500/20"
       : "bg-stone-500/10 text-stone-500 border border-stone-500/20";
 
   return (
@@ -312,7 +312,7 @@ function ServerDetailsDrawer({ server, tools, status, onClose }: ServerDetailsDr
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-mono font-medium uppercase text-muted-foreground">Connection</span>
               <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-medium uppercase tracking-wider ${badgeColor}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${status.state === "healthy" ? "bg-emerald-500" : (status.state === "offline" ? "bg-rose-500" : "bg-stone-500")} animate-pulse`} />
+                <span className={`h-1.5 w-1.5 rounded-full ${status.state === "healthy" ? "bg-[var(--status-ok)]" : (status.state === "offline" ? "bg-[var(--status-critical)]" : "bg-stone-500")} animate-pulse`} />
                 {status.status}
               </span>
             </div>

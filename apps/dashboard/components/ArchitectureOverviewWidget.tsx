@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Shield, CircleDot, Info, Scale } from "lucide-react";
+import { Check, Shield, CircleDot, Scale } from "lucide-react";
 
 interface Node {
   id: string;
@@ -145,9 +145,9 @@ export function ArchitectureOverviewWidget() {
                 }`}
               >
                 <div
-                  className={`p-1.5 border rounded-lg shrink-0 transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] ${
+                  className={`p-1.5 border rounded-lg shrink-0 transition-colors duration-200 ease-[cubic-bezier(0.2,0,0,1)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)] ${
                     isHighlighted
-                      ? "text-accent border-accent/40 bg-accent/10 shadow-[0_0_8px_rgba(219,138,116,0.2)]"
+                      ? "text-accent border-accent/40 bg-accent/10"
                       : "border-white/[0.08] bg-card/60 text-muted-foreground"
                   }`}
                 >
@@ -184,7 +184,7 @@ export function ArchitectureOverviewWidget() {
                 key={cap}
                 className="flex items-center gap-2 text-muted-foreground font-semibold"
               >
-                <div className="p-0.5 bg-green-500/10 text-green-500 rounded border border-green-500/20 shrink-0 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
+                <div className="p-0.5 chip chip-ok shrink-0">
                   <Check size={10} strokeWidth={2.5} />
                 </div>
                 <span className="truncate">{cap}</span>
@@ -209,8 +209,8 @@ export function ArchitectureOverviewWidget() {
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] ${
                     c.status === "Bonus"
-                      ? "bg-purple-500/10 text-purple-500 border border-purple-500/20"
-                      : "bg-green-500/10 text-green-500 border border-green-500/20"
+                      ? "chip chip-special"
+                      : "chip chip-ok"
                   }`}
                 >
                   {c.status}
@@ -223,9 +223,6 @@ export function ArchitectureOverviewWidget() {
 
       <div className="col-span-1 md:col-span-2 p-6 bg-card/40 backdrop-blur-sm border border-white/[0.04] rounded-2xl shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04)] space-y-3 text-xs">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-accent/10 border border-accent/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
-            <Info size={14} className="text-accent" strokeWidth={2} />
-          </div>
           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
             Architecture Summary
           </h4>

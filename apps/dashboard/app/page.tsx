@@ -108,7 +108,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar activeTab={activeTab} onChangeTab={(tab) => { sound.playTap(); setActiveTab(tab); }} />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -117,16 +117,16 @@ export default function Home() {
             <h2 className="text-xs font-bold text-foreground tracking-tight">
               {getTabTitle()}
             </h2>
-            <button
-              onClick={() => { sound.playTap(); setIsSearchOpen(true); }}
-              className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-all duration-150 cursor-pointer"
-            >
-              <Search size={11} className="opacity-80" />
-              <span>Search...</span>
-              <kbd className="pointer-events-none rounded bg-card px-1 font-mono text-[8px] text-muted-foreground/60 border border-border/30">
-                ⌘K
-              </kbd>
-            </button>
+              <button
+                onClick={() => { sound.playTap(); setIsSearchOpen(true); }}
+                className="flex items-center gap-2 w-64 justify-start rounded-lg border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-medium text-muted-foreground hover:bg-muted/70 hover:text-foreground transition-all duration-150 cursor-pointer"
+              >
+                <Search size={11} className="opacity-80 shrink-0" />
+                <span>Search...</span>
+                <kbd className="pointer-events-none ml-auto rounded bg-card px-1 font-mono text-[8px] text-muted-foreground/60 border border-border/30">
+                  ⌘K
+                </kbd>
+              </button>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground z-30">

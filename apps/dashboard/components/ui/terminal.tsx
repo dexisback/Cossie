@@ -499,7 +499,7 @@ export function Terminal({
               FAQ
             </button>
             <div className="absolute right-0 top-full mt-2 w-64 p-3 rounded-xl border border-neutral-800 bg-neutral-950 text-left shadow-[0_4px_8px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.25)] opacity-0 scale-95 pointer-events-none group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition-all duration-200 origin-top-right z-50">
-              <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-2 border-b border-neutral-800 pb-1">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2 border-b border-neutral-800 pb-1">
                 Frequently Asked Questions
               </h4>
               <div className="space-y-2">
@@ -513,7 +513,7 @@ export function Terminal({
                       <button
                         onClick={() => onSelectFAQ?.(item)}
                         type="button"
-                        className="px-1 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/30 transition-all duration-150 font-semibold active:scale-[0.96] cursor-pointer hover:shadow-[0_0_8px_rgba(16,185,129,0.15)]"
+                        className="px-1 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700 hover:border-neutral-600 transition-colors duration-150 font-semibold active:scale-[0.96] cursor-pointer"
                       >
                         Run
                       </button>

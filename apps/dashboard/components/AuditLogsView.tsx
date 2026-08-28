@@ -67,11 +67,11 @@ export function AuditLogsView() {
   function getDecisionTextColor(decision: string) {
     switch (decision) {
       case "ALLOW":
-        return "text-emerald-500 dark:text-emerald-400";
+        return "text-status-ok";
       case "DENY":
-        return "text-rose-500 dark:text-rose-400";
+        return "text-status-critical";
       case "REQUIRE_APPROVAL":
-        return "text-amber-500 dark:text-amber-400";
+        return "text-status-warn";
       default:
         return "text-muted-foreground";
     }
@@ -80,13 +80,13 @@ export function AuditLogsView() {
   function getRiskTextColor(risk: string) {
     switch (risk) {
       case "LOW":
-        return "text-emerald-500 dark:text-emerald-400";
+        return "text-status-ok";
       case "MEDIUM":
-        return "text-blue-500";
+        return "text-status-info";
       case "HIGH":
-        return "text-amber-500 dark:text-amber-400";
+        return "text-status-warn";
       case "CRITICAL":
-        return "text-rose-500 dark:text-rose-400";
+        return "text-status-critical";
       default:
         return "text-muted-foreground";
     }
@@ -258,8 +258,8 @@ export function AuditLogsView() {
                       <span
                         className={`inline-flex items-center gap-1.5 font-medium text-[11px] ${
                           log.executed
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-rose-600 dark:text-rose-400"
+                            ? "text-status-ok"
+                            : "text-status-critical"
                         }`}
                       >
                         {log.executed ? (
@@ -349,7 +349,7 @@ export function AuditLogsView() {
                     Executed
                   </span>
                   <p
-                    className={`font-semibold mt-0.5 ${selectedLog.executed ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+                    className={`font-semibold mt-0.5 ${selectedLog.executed ? "text-status-ok" : "text-status-critical"}`}
                   >
                     {selectedLog.executed ? "Yes" : "No (Blocked)"}
                   </p>

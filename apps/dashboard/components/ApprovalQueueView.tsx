@@ -118,8 +118,7 @@ export function ApprovalQueueView() {
                     {approval.toolName}
                   </span>
                   <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider bg-amber-500/10 text-amber-500 border border-amber-500/25 shadow-sm"
-                    style={{ boxShadow: "0 0 0 1px rgba(245, 158, 11, 0.08)" }}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 chip chip-warn text-[9px] font-medium uppercase tracking-wider"
                   >
                     <Clock size={10} />
                     {approval.status}
@@ -160,7 +159,7 @@ export function ApprovalQueueView() {
                     e.stopPropagation();
                     resolveApproval(approval.id, "reject");
                   }}
-                  className="px-4 py-2 border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/15 text-rose-500 dark:text-rose-400 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-[background-color,border-color,transform] duration-200 ease-out active:scale-[0.96]"
+                  className="px-4 py-2 border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/15 text-status-critical text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-[background-color,border-color,transform] duration-200 ease-out active:scale-[0.96]"
                 >
                   <X size={14} />
                   Reject

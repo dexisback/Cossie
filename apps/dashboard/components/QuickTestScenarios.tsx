@@ -108,15 +108,15 @@ export function QuickTestScenarios({
   function getAccentClass(accent: string) {
     switch (accent) {
       case "green":
-        return "bg-emerald-500/[0.02] hover:bg-emerald-500/[0.04] text-emerald-600 dark:text-emerald-400";
+        return "hover:bg-muted/20 text-status-ok";
       case "yellow":
-        return "bg-amber-500/[0.02] hover:bg-amber-500/[0.04] text-amber-600 dark:text-amber-400";
+        return "hover:bg-muted/20 text-status-warn";
       case "red":
-        return "bg-rose-500/[0.02] hover:bg-rose-500/[0.04] text-rose-600 dark:text-rose-400";
+        return "hover:bg-muted/20 text-status-critical";
       case "purple":
-        return "bg-purple-500/[0.02] hover:bg-purple-500/[0.04] text-purple-600 dark:text-purple-400";
+        return "hover:bg-muted/20 text-status-special";
       case "blue":
-        return "bg-blue-500/[0.02] hover:bg-blue-500/[0.04] text-blue-600 dark:text-blue-400";
+        return "hover:bg-muted/20 text-status-info";
       default:
         return "bg-muted/10 hover:bg-muted/20 text-muted-foreground";
     }
@@ -159,13 +159,13 @@ export function QuickTestScenarios({
   function getBadgeClass(badge: string) {
     switch (badge) {
       case "ALLOW":
-        return "bg-emerald-500/10 text-emerald-500";
+        return "chip chip-ok";
       case "DENY":
-        return "bg-rose-500/10 text-rose-500 dark:text-rose-400";
+        return "chip chip-critical";
       case "REQUIRE_APPROVAL":
-        return "bg-amber-500/10 text-amber-500";
+        return "chip chip-warn";
       case "PROMPT_SECURITY":
-        return "bg-purple-500/10 text-purple-500";
+        return "chip chip-special";
       default:
         return "bg-muted text-muted-foreground";
     }

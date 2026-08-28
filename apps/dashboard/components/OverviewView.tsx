@@ -282,9 +282,14 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
                     Visual trace timeline of the AI request lifecycle.
                   </p>
                 </div>
-                <p className="text-[10px] text-muted-foreground py-8 text-center">
-                  Run a test scenario to see the request lifecycle here.
-                </p>
+                <div className="app-hatch rounded-lg border border-dashed border-border/70 py-10 flex flex-col items-center justify-center gap-1">
+                  <p className="text-[10px] text-muted-foreground bg-background px-2 py-0.5">
+                    No requests traced yet
+                  </p>
+                  <p className="text-[9px] text-muted-foreground/60 bg-background px-2">
+                    Run a test scenario to see the lifecycle here.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -419,7 +424,7 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
                           }),
                         )
                       }
-                      className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-semibold text-accent border border-accent/30 rounded-md hover:bg-accent/10 hover:border-accent/50 hover:shadow-[0_0_8px_rgba(var(--accent-rgb),0.15)] transition-[background-color,border-color,box-shadow,transform] duration-180 ease-out active:scale-[0.96]"
+                      className="flex items-center gap-1 px-2.5 py-1 text-[9px] font-semibold text-accent border border-accent/30 rounded-md hover:bg-accent/10 hover:border-accent/50 transition-[background-color,border-color,transform] duration-180 ease-out active:scale-[0.96]"
                     >
                       <Play size={8} fill="currentColor" />
                       Run

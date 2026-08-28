@@ -5,7 +5,6 @@ import { useMutation } from "@tanstack/react-query";
 import { Conversation } from "./Conversation";
 import { PromptInput } from "./PromptInput";
 import { ChatMessage } from "./MessageBubble";
-import { Bot } from "lucide-react";
 import { Terminal, FAQItem } from "./ui/terminal";
 import { api } from "../lib/api";
 
@@ -142,9 +141,6 @@ export function AgentCard() {
   return (
     <div className="flex flex-col h-full min-h-[480px] bg-card/40 backdrop-blur-sm rounded-2xl border border-white/[0.02] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)]">
       <div className="flex items-center gap-2.5 mb-4 pb-3.5 border-b border-white/[0.04]">
-        <div className="p-1.5 rounded-lg bg-accent/10 border border-accent/20 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03)]">
-          <Bot size={14} className="text-accent" strokeWidth={2} />
-        </div>
         <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-foreground">
           AI Agent Console
         </h3>
