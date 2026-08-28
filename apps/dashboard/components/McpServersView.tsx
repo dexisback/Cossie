@@ -6,6 +6,7 @@ import { Server, RefreshCw, Wrench, ShieldCheck, Terminal, X, Radio, Play, HelpC
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../lib/api";
+import { EmptyServersIcon } from "./icons/EmptyServers";
 
 interface McpServer {
   id: string;
@@ -153,7 +154,7 @@ export function McpServersView({}: McpServersViewProps) {
         </div>
       ) : serversList.length === 0 ? (
         <div className="text-center py-16 border border-border rounded-2xl bg-card">
-          <Server className="mx-auto text-muted-foreground mb-3" size={24} />
+          <EmptyServersIcon />
           <h3 className="text-xs font-bold text-foreground">No MCP Servers Connected</h3>
           <p className="text-[11px] text-muted-foreground mt-1">
             Connect an MCP server to begin discovering tools.

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   Search,
   X,
-  ShieldAlert,
   CheckCircle2,
   AlertTriangle,
   ChevronDown,
@@ -12,6 +11,7 @@ import {
 import { ApprovalDetailsDrawer } from "./ApprovalDetailsDrawer";
 import { api } from "../lib/api";
 import { RequestTimeline } from "./RequestTimeline";
+import { EmptyAuditLogsIcon } from "./icons/EmptyAuditLogs";
 
 function formatToolName(toolName: string): { title: string; category: string } {
   if (!toolName) return { title: "Unknown Tool", category: "System Tool" };
@@ -193,10 +193,7 @@ export function AuditLogsView() {
 
       {filteredLogs.length === 0 ? (
         <div className="text-center py-20 border border-border rounded-2xl bg-card/35 backdrop-blur-sm">
-          <ShieldAlert
-            className="mx-auto text-muted-foreground mb-3"
-            size={24}
-          />
+          <EmptyAuditLogsIcon />
           <p className="text-xs text-muted-foreground">
             No audit logs matching filters found.
           </p>
