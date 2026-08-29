@@ -4,6 +4,7 @@ import { approvalRouter } from "./approval.routes.js";
 import { chatRouter } from "./chat.routes.js";
 import { healthRouter } from "../health/health.route.js";
 import { logRouter } from "./log.routes.js";
+import { securityRouter } from "./security.routes.js";
 import { toolRouter } from "./tool.routes.js";
 import { ruleRouter } from "./rule.routes.js";
 import { riskRouter } from "./risk.routes.js";
@@ -25,5 +26,6 @@ app.use("/api", logRouter);
 app.use("/api", toolRouter);
 app.use("/api", ruleRouter);
 app.use("/api", riskRouter);
+app.use("/api", securityRouter);
   return app;
 }

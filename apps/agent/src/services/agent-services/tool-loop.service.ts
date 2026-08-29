@@ -45,15 +45,15 @@ export class ToolLoopService {
     prompt: string,
     conversationId: string = "default"
   ): Promise<string> {
-      const scan = promptSecurityService.scan(prompt)
+      const scan = await promptSecurityService.scan(prompt)
       if(scan.suspicious){
         await logService.create({
           toolName: "PROMPT_SECURITY",
           decision: "ALLOW",
           eventType: "PROMPT_INJECTION",
-          reason: scan.matchedPatterns.join(
-            ", "
-          ),
+          reason: scan.technique
+            ? `${scan.technique} (score ${scan.score})`
+            : scan.matchedPatterns.join(", "),
           trace: scan,
           conversationId,
         })
