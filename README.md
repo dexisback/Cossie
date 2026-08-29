@@ -6,7 +6,7 @@
 
 A production-inspired AI agent runtime that sits between Large Language Models and external tools, enforcing configurable guardrails before every tool invocation.
 
-Built as part of the Cossie Software Engineer Internship Project.
+Built as part of a SDE Intern Assessment.
 
 ---
 
