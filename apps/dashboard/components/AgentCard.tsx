@@ -2,50 +2,77 @@
 
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "framer-motion";
+import { SendHorizontal } from "lucide-react";
 import { Conversation } from "./Conversation";
-import { PromptInput } from "./PromptInput";
 import { ChatMessage } from "./MessageBubble";
-import { Terminal, FAQItem } from "./ui/terminal";
 import { api } from "../lib/api";
 
-const agentCommands = [
-  "cossie agent status",
-  'cossie run --tool fetch-web --url "https://api.github.com"',
-  'cossie policy check --action write_file --path "/var/log/syslog"',
-];
+function Bolt({ className }: { className: string }) {
+  return (
+    <div
+      aria-hidden
+      className={`absolute ${className} h-2.5 w-2.5 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.4)] bg-[radial-gradient(circle_at_32%_30%,#f0f0f3,#c6c6cd_52%,#87878f)] dark:bg-[radial-gradient(circle_at_32%_30%,#55555e,#303037_52%,#17171c)]`}
+    >
+      <div className="absolute left-1/2 top-1/2 h-[1.5px] w-[5px] -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-full bg-black/35 dark:bg-black/60" />
+    </div>
+  );
+}
 
-const agentOutputs = {
-  0: [
-    "Agent backend status: ACTIVE",
-    "Connected to client on port 4000",
-    "Evaluated 28 policy requests in last 24h",
-  ],
-  1: [
-    "Evaluating URL request against network policies...",
-    "Policy result: ALLOWED (fetch-web domain check passed)",
-    "Status code: 200 OK (payload: 1.2KB)",
-  ],
-  2: [
-    "Evaluating filesystem policy...",
-    "Policy result: BLOCKED (write-access unauthorized for '/var/log/syslog')",
-    "Alert dispatched to Security Console.",
-  ],
-};
-
-const agentFAQs: FAQItem[] = [
-  {
-    q: "How do I check live agent connection status?",
-    cmd: "cossie agent status",
-  },
-  {
-    q: "Can the agent fetch data from external URLs?",
-    cmd: 'cossie run --tool fetch-web --url "https://api.github.com"',
-  },
-  {
-    q: "What happens if a tool modifies critical files?",
-    cmd: 'cossie policy check --action write_file --path "/var/log/syslog"',
-  },
-];
+function BootBlock() {
+  const reduce = useReducedMotion();
+  return (
+    <div className="h-full flex flex-col justify-center px-6 py-8 text-xs space-y-2.5">
+      <motion.p
+        initial={reduce ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", duration: 0.5, bounce: 0, delay: 0.35 }}
+        className="flex items-center gap-2 text-[#3ecf8e]"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[#3ecf8e]/80" />
+        policy engine active
+      </motion.p>
+      <motion.p
+        initial={reduce ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          type: "spring",
+          duration: 0.5,
+          bounce: 0,
+          delay: 0.47,
+        }}
+        className="text-white/35"
+      >
+        tool calls are evaluated before execution
+      </motion.p>
+      <motion.p
+        initial={reduce ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          type: "spring",
+          duration: 0.5,
+          bounce: 0,
+          delay: 0.59,
+        }}
+        className="text-white/35"
+      >
+        type a message below to begin
+      </motion.p>
+      <motion.p
+        initial={reduce ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="flex items-center gap-2 pt-1 text-white/70"
+      >
+        <span className="text-[#3ecf8e]/80">$</span>
+        <span
+          aria-hidden
+          className="cursor-block inline-block h-[14px] w-[8px] bg-[#d4d4d8]"
+        />
+      </motion.p>
+    </div>
+  );
+}
 
 export function AgentCard() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -57,6 +84,7 @@ export function AgentCard() {
     },
   ]);
   const [inputVal, setInputVal] = useState("");
+  const reduce = useReducedMotion();
 
   const chatMutation = useMutation({
     mutationFn: async (messageText: string) => {
@@ -136,42 +164,91 @@ export function AgentCard() {
       window.removeEventListener("cossie:select-prompt", onSelectPrompt);
       window.removeEventListener("cossie:run-prompt", onRunPrompt);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatMutation.isPending]);
 
+  const inConversation = messages.length > 1;
+
   return (
-    <div className="flex flex-col h-full min-h-[480px] bg-card/40 backdrop-blur-sm rounded-2xl border border-white/[0.02] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)]">
-      <div className="flex items-center gap-2.5 mb-4 pb-3.5 border-b border-white/[0.04]">
-        <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-foreground">
-          AI Agent Console
-        </h3>
-      </div>
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 28, scale: 0.975, rotate: -0.5 }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+      transition={
+        reduce
+          ? { duration: 0 }
+          : { type: "spring", duration: 0.85, bounce: 0.16 }
+      }
+      style={{
+        boxShadow:
+          "0 0 0 1px var(--border), 0 1px 2px rgba(22,25,37,0.04), 0 8px 24px rgba(22,25,37,0.05), 0 24px 56px rgba(22,25,37,0.06)",
+      }}
+      className="relative rounded-[24px] p-3.5 bg-card"
+    >
+      <Bolt className="top-[7px] left-[10px]" />
+      <Bolt className="top-[7px] right-[10px]" />
 
-      <div className="flex-1 flex flex-col min-h-0 mb-4 justify-center">
-        {messages.length <= 1 ? (
-          <Terminal
-            commands={agentCommands}
-            outputs={agentOutputs}
-            faqList={agentFAQs}
-            onSelectFAQ={(item) => handleRunPrompt(item.q)}
-            username="Cossie-Agent"
-            className="w-full max-w-2xl px-0 shadow-none border-0"
+      {/* Screen — always dark, Ghostty-like surface, mounted inside the plate */}
+      <div
+        style={{
+          boxShadow:
+            "inset 0 0 0 1px rgba(255,255,255,0.035), inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0 1px rgba(0,0,0,0.4)",
+        }}
+        className="terminal-screen flex flex-col h-[400px] rounded-[10px] overflow-hidden bg-[#0b0e13]/95 backdrop-blur-md"
+      >
+        {/* Title bar */}
+        <div className="relative flex items-center h-9 px-3.5 shrink-0 border-b border-white/[0.05] bg-white/[0.015]">
+          <div className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/85" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/85" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/85" />
+          </div>
+          <span className="absolute left-1/2 -translate-x-1/2 text-[10px] text-white/35">
+            cossie-agent — session
+          </span>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 min-h-0">
+          {inConversation ? (
+            <Conversation
+              messages={messages}
+              loading={chatMutation.isPending}
+            />
+          ) : (
+            <BootBlock />
+          )}
+        </div>
+
+        {/* Command line */}
+        <div className="flex items-center gap-2.5 px-4 py-3 border-t border-white/[0.05] transition-colors duration-150 focus-within:bg-white/[0.02]">
+          <span className="text-xs text-[#3ecf8e]/80 shrink-0 select-none">
+            $
+          </span>
+          <input
+            type="text"
+            value={inputVal}
+            disabled={chatMutation.isPending}
+            onChange={(e) => setInputVal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="type a command or message…"
+            className="flex-1 bg-transparent text-xs text-zinc-100 placeholder:text-white/25 caret-[#3ecf8e] focus:outline-none disabled:opacity-50"
           />
-        ) : (
-          <Conversation messages={messages} loading={chatMutation.isPending} />
-        )}
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={chatMutation.isPending || !inputVal.trim()}
+            aria-label="Send message"
+            className="h-7 w-7 flex items-center justify-center rounded-lg bg-accent text-accent-foreground shrink-0 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]"
+          >
+            <SendHorizontal size={12} />
+          </button>
+        </div>
       </div>
-
-      <div className="space-y-2.5 pb-4">
-        <PromptInput
-          value={inputVal}
-          onChange={setInputVal}
-          onSend={handleSend}
-          disabled={chatMutation.isPending}
-        />
-        <p className="text-[10px] text-muted-foreground/80 font-medium italic leading-relaxed">
-          Tool calls are evaluated by the Policy Engine before execution.
-        </p>
-      </div>
-    </div>
+    </motion.div>
   );
 }

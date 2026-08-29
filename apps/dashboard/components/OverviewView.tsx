@@ -234,12 +234,8 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
       <div className="grid grid-cols-12 gap-8 items-start">
         {/* Left: Console + stats */}
         <div className="col-span-12 lg:col-span-8 flex flex-col justify-between gap-6">
-          {/* Agent Console — single clean card */}
-          <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
-            <div className="p-5">
-              <AgentCard />
-            </div>
-          </div>
+          {/* Agent Console — single mounted panel */}
+          <AgentCard />
 
           {/* Stat strip — no card borders, just a row of numbers */}
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-0 divide-x divide-border/40 border border-border/40 rounded-xl overflow-hidden bg-card/25">

@@ -323,6 +323,37 @@ body {
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-special) 22%, transparent);
 }
 
+/* ---------------------------------------------------------------------------
+   Terminal screen — Ghostty-like surface: flat near-black, Geist Mono,
+   accent text selection, and a real block cursor with a stepped blink
+   (terminals blink on/off, they never fade).
+--------------------------------------------------------------------------- */
+.terminal-screen {
+    font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+        monospace;
+    -webkit-font-smoothing: antialiased;
+}
+
+.terminal-screen ::selection {
+    background: rgba(209, 94, 65, 0.35);
+    color: #fafafa;
+}
+
+@keyframes terminal-cursor-blink {
+    0%,
+    54% {
+        opacity: 1;
+    }
+    55%,
+    100% {
+        opacity: 0;
+    }
+}
+
+.cursor-block {
+    animation: terminal-cursor-blink 1.1s steps(1, end) infinite;
+}
+
 *::-webkit-scrollbar {
     display: none;
 }

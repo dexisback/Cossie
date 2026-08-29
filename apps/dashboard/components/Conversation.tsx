@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageBubble, ChatMessage } from "./MessageBubble";
-import { TypingIndicator } from "./TypingIndicator";
+import type { ChatMessage } from "./MessageBubble";
 
 interface ConversationProps {
   messages: ChatMessage[];
@@ -25,29 +24,57 @@ export function Conversation({ messages, loading }: ConversationProps) {
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-[300px] max-h-[450px] bg-background/30 rounded-2xl border border-border shadow-[inset_0_1px_2px_rgba(0,0,0,0.04)] scroll-smooth"
+      className="h-full overflow-y-auto px-6 py-5 space-y-3 text-xs scroll-smooth"
       style={{ scrollBehavior: "smooth" }}
     >
       <AnimatePresence initial={false} mode="popLayout">
-        {messages.map((message, index) => (
-          <MessageBubble key={message.id} message={message} index={index} />
-        ))}
+        {messages.map((message) => {
+          const isUser = message.role === "user";
+          return (
+            <motion.div
+              key={message.id}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+              className={`flex gap-2.5 leading-relaxed ${
+                isUser ? "items-baseline" : "items-start"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`shrink-0 select-none ${
+                  isUser ? "text-[#3ecf8e]/80" : "text-white/25"
+                }`}
+              >
+                {isUser ? "$" : "▪"}
+              </span>
+              <p
+                className={`whitespace-pre-wrap text-wrap-pretty min-w-0 ${
+                  isUser ? "text-zinc-100" : "text-white/70"
+                }`}
+              >
+                {message.content}
+              </p>
+            </motion.div>
+          );
+        })}
 
         {loading && (
           <motion.div
-            className="flex justify-start"
-            initial={{ opacity: 0, y: 8 }}
+            className="flex items-center gap-2.5 leading-relaxed"
+            initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{
-              type: "spring",
-              duration: 0.3,
-              bounce: 0,
-            }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", duration: 0.35, bounce: 0 }}
           >
-            <div className="bg-muted/40 text-foreground border border-border rounded-2xl rounded-tl-sm px-4 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_2px_6px_rgba(0,0,0,0.04)]">
-              <TypingIndicator />
-            </div>
+            <span aria-hidden className="shrink-0 select-none text-white/25">
+              ▪
+            </span>
+            <span className="text-white/35">thinking</span>
+            <span
+              aria-hidden
+              className="cursor-block inline-block h-3 w-[6px] bg-white/30"
+            />
           </motion.div>
         )}
       </AnimatePresence>
