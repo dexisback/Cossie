@@ -23,6 +23,13 @@ import { PrismaClient } from "../../../generated/prisma/client.js";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import dns from "node:dns";
+
+// The Neon serverless driver connects over WebSocket (wss). Node's default
+// "verbatim" DNS ordering may return AAAA (IPv6) records first; on hosts
+// without an IPv6 route (WSL, some VMs/VPNs) those attempts fail. Prefer
+// IPv4 so the connection lands on a working A record first.
+dns.setDefaultResultOrder("ipv4first");
 
 neonConfig.webSocketConstructor = ws;
 
