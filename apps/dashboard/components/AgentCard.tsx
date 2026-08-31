@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "framer-motion";
-import { SendHorizontal } from "lucide-react";
+import { SendHorizontal, Square } from "lucide-react";
 import { Conversation } from "./Conversation";
 import { ChatMessage } from "./MessageBubble";
 import { api } from "../lib/api";
@@ -84,15 +84,27 @@ export function AgentCard() {
     },
   ]);
   const [inputVal, setInputVal] = useState("");
+  const [queue, setQueue] = useState<string[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
   const reduce = useReducedMotion();
 
   const chatMutation = useMutation({
     mutationFn: async (messageText: string) => {
-      const res = await api.post("/api/chat", { message: messageText });
-      if (!res.ok) {
-        throw new Error("API call failed");
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        const res = await api.post(
+          "/api/chat",
+          { message: messageText },
+          { signal: controller.signal }
+        );
+        if (!res.ok) {
+          throw new Error("API call failed");
+        }
+        return res.json();
+      } finally {
+        abortRef.current = null;
       }
-      return res.json();
     },
     onSuccess: (data) => {
       const replyContent = data.response || "No response content from agent.";
@@ -106,33 +118,62 @@ export function AgentCard() {
         },
       ]);
     },
-    onError: () => {
+    onError: (error) => {
       setMessages((prev) => [
         ...prev,
         {
-          id: `msg-${Date.now()}-error`,
+          id: `msg-${Date.now()}-${error.name === "AbortError" ? "stopped" : "error"}`,
           role: "assistant",
-          content: "Unable to contact the agent.",
+          content:
+            error.name === "AbortError"
+              ? "response stopped"
+              : "Unable to contact the agent.",
           createdAt: new Date(),
         },
       ]);
     },
   });
 
-  function handleSend() {
-    const trimmed = inputVal.trim();
-    if (!trimmed || chatMutation.isPending) return;
+  // Flush the queue: whenever the agent goes idle and messages are waiting,
+  // send the next one (one at a time, in order).
+  useEffect(() => {
+    if (chatMutation.isPending || queue.length === 0) return;
+    const [next, ...rest] = queue;
+    setQueue(rest);
+    pushUserAndSend(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queue, chatMutation.isPending]);
 
+  // Abort any in-flight request if the card unmounts.
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  function pushUserAndSend(text: string) {
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}-user`,
       role: "user",
-      content: trimmed,
+      content: text,
       createdAt: new Date(),
     };
-
     setMessages((prev) => [...prev, userMsg]);
+    chatMutation.mutate(text);
+  }
+
+  function handleSend() {
+    const trimmed = inputVal.trim();
+    if (!trimmed) return;
     setInputVal("");
-    chatMutation.mutate(trimmed);
+
+    // Agent busy? Queue the message — it sends automatically when idle.
+    if (chatMutation.isPending) {
+      setQueue((q) => [...q, trimmed]);
+      return;
+    }
+    pushUserAndSend(trimmed);
+  }
+
+  function handleStop() {
+    abortRef.current?.abort();
+    setQueue([]);
   }
 
   function handleSelectPrompt(prompt: string) {
@@ -140,15 +181,11 @@ export function AgentCard() {
   }
 
   function handleRunPrompt(prompt: string) {
-    if (chatMutation.isPending) return;
-    const userMsg: ChatMessage = {
-      id: `msg-${Date.now()}-user`,
-      role: "user",
-      content: prompt,
-      createdAt: new Date(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    chatMutation.mutate(prompt);
+    if (chatMutation.isPending) {
+      setQueue((q) => [...q, prompt]);
+      return;
+    }
+    pushUserAndSend(prompt);
   }
 
   useEffect(() => {
@@ -227,7 +264,6 @@ export function AgentCard() {
           <input
             type="text"
             value={inputVal}
-            disabled={chatMutation.isPending}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -235,18 +271,35 @@ export function AgentCard() {
                 handleSend();
               }
             }}
-            placeholder="type a command or message…"
-            className="flex-1 bg-transparent text-xs text-zinc-100 placeholder:text-white/25 caret-[#3ecf8e] focus:outline-none disabled:opacity-50"
+            placeholder={
+              chatMutation.isPending
+                ? "agent is responding — keep typing, your message will queue…"
+                : "type a command or message…"
+            }
+            aria-label="Message input"
+            className="flex-1 bg-transparent text-xs text-zinc-100 placeholder:text-white/25 caret-[#3ecf8e] focus:outline-none"
           />
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={chatMutation.isPending || !inputVal.trim()}
-            aria-label="Send message"
-            className="h-7 w-7 flex items-center justify-center rounded-lg bg-accent text-accent-foreground shrink-0 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]"
-          >
-            <SendHorizontal size={12} />
-          </button>
+          {chatMutation.isPending ? (
+            <button
+              type="button"
+              onClick={handleStop}
+              aria-label="Stop response"
+              title="Stop response"
+              className="h-7 w-7 flex items-center justify-center rounded-lg bg-accent text-accent-foreground shrink-0 cursor-pointer transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]"
+            >
+              <Square size={10} fill="currentColor" strokeWidth={0} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={!inputVal.trim()}
+              aria-label="Send message"
+              className="h-7 w-7 flex items-center justify-center rounded-lg bg-accent text-accent-foreground shrink-0 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed transition-[transform,opacity] duration-150 ease-[cubic-bezier(0.2,0,0,1)] active:scale-[0.96]"
+            >
+              <SendHorizontal size={12} />
+            </button>
+          )}
         </div>
       </div>
     </motion.div>
