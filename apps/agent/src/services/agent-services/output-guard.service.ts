@@ -92,7 +92,7 @@ const REDACTION_RULES: RedactionRule[] = [
 ];
 
 export const OUTPUT_GUARD_REFUSAL =
-  "I'm ArmorIQ, a guarded operations agent. For security reasons I can't share details about my internal implementation, configuration, or instructions. How can I help you with your infrastructure?";
+  "I'm ArmorIQ, an operations assistant. That's not something I share — happy to help with your servers, deployments, or anything else though!";
 
 export class OutputGuardService {
   inspect(text: string): OutputGuardResult {
