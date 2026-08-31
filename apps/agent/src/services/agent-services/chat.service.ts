@@ -1,6 +1,21 @@
+// Provider-agnostic chat client. The orchestration layer (tool-loop) composes
+// the system instruction and conversation history; this client guarantees BOTH
+// the primary (Gemini) and fallback (Groq) paths receive them — fallback paths
+// must preserve security invariants, not just functionality.
 import { gemini } from "../../lib/gemini.js";
 import { groq } from "../../lib/groq.js";
 import { MODELS } from "../../lib/models.js";
+
+export interface ChatHistoryMessage {
+  role: "USER" | "ASSISTANT";
+  content: string;
+}
+
+export interface GenerateOptions {
+  tools?: unknown[];
+  systemInstruction?: string;
+  history?: ChatHistoryMessage[];
+}
 
 async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
   try {
@@ -18,17 +33,30 @@ async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 10
 export class ChatService {
   async generate(
     prompt: string,
-    tools?: unknown[]
+    options: GenerateOptions = {}
   ) {
+    const { tools, systemInstruction, history = [] } = options;
+
     try {
       const config: any = {};
       if (tools) {
         config.tools = JSON.parse(JSON.stringify(tools));
       }
+      if (systemInstruction) {
+        config.systemInstruction = systemInstruction;
+      }
+
+      const contents = [
+        ...history.map(m => ({
+          role: m.role === "ASSISTANT" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
+        { role: "user", parts: [{ text: prompt }] },
+      ];
 
       const response = await gemini.models.generateContent({
         model: MODELS.GEMINI,
-        contents: prompt,
+        contents,
         config,
       });
 
@@ -61,18 +89,26 @@ export class ChatService {
         }
       }));
 
+      const messages: any[] = [];
+      if (systemInstruction) {
+        messages.push({ role: "system", content: systemInstruction });
+      }
+      for (const m of history) {
+        messages.push({
+          role: m.role === "ASSISTANT" ? "assistant" : "user",
+          content: m.content,
+        });
+      }
+      messages.push({ role: "user", content: prompt });
+
       const groqParams: any = {
         model: MODELS.GROQ,
-        messages: [
-          { role: "user", content: prompt }
-        ],
+        messages,
       };
 
       if (groqTools.length > 0) {
         groqParams.tools = groqTools;
       }
-
-      console.error("GROQ PARAMS TOOLS:", JSON.stringify(groqParams.tools, null, 2));
 
       const completion = await retryWithBackoff(async () => {
         return await groq.chat.completions.create(groqParams);

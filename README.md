@@ -70,9 +70,14 @@ This project implements all core requirements from the Cossie Software Engineer 
 ### AI Agent
 
 - Gemini-powered tool-using agent
-- Multi-turn tool execution loop
+- Multi-turn tool execution loop with a hard iteration cap (circuit breaker)
 - Dynamic MCP tool discovery
 - Provider-agnostic architecture
+- Persistent agent identity via system instruction (identity and disclosure policy applied on every model call, including fallback providers)
+- Tiered prompt-injection response: always logged, runtime warning injected for suspicious prompts, hard block for critical scores
+- Output guard: blocks model-identity/system-prompt disclosure and redacts secrets before responses reach the user
+- Conversation history replayed from the database for persona coherence and multi-turn attack visibility
+- Conversation token usage tracked and fed into budget policies
 
 ### Policy Engine
 
@@ -151,6 +156,8 @@ The architecture is built around several core principles.
 - AI reasoning is separated from infrastructure authorization.
 - Components communicate through well-defined boundaries.
 - The platform remains extensible as additional MCP servers and policy types are introduced.
+
+Guardrails are layered across the whole request pipeline, not a single checkpoint: soft guardrails (system instruction, injected security warnings) shape model intent, hard guardrails (policy engine, approvals, iteration cap) constrain actions, and the output guard inspects everything on the way out. Every plane feeds signals to the others.
 
 ---
 

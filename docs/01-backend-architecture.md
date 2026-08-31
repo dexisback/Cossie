@@ -88,15 +88,16 @@ Current services:
 
 | Service | Responsibility |
 |---|---|
-| **ToolLoopService** | Central orchestrator: receive prompt → scan prompt → call LLM → detect tool calls → invoke Policy Engine → execute approved tools → log events → generate final response. Never queries Prisma directly, evaluates policies, discovers tools, or touches Redis — it only coordinates through delegation. |
-| **ChatService** | Owns all LLM communication: provider selection, response generation, Groq retries with exponential backoff, Gemini→Groq fallback, provider abstraction. Nothing else imports Gemini directly. |
+| **ToolLoopService** | Central orchestrator: load context → scan prompt (tiered enforcement) → compose system instruction → call LLM → detect tool calls → invoke Policy Engine → execute approved tools → enforce iteration cap → output guard → log events → generate final response. Delegates everything else — it coordinates; it does not evaluate policies, discover tools, or touch provider SDKs. |
+| **ChatService** | Owns all LLM communication: provider selection, response generation, Groq retries with exponential backoff, Gemini→Groq fallback, provider abstraction. Receives and applies the system instruction and conversation history on both provider paths — security invariants survive failover. Nothing else imports Gemini directly. |
+| **OutputGuardService** | Inspects model-generated text before delivery: blocks verbatim system-prompt sentinels and first-person model/provider identity disclosure, redacts secret-shaped content (API keys, JWTs, bearer tokens, credential key/value pairs). Deterministic patterns only; every intervention is audit-logged. |
 | **ToolAdapterService** | Converts `DiscoveredTool` objects into provider-specific tool definitions (currently Gemini tool format). Keeps registry objects provider-independent; new providers add adapters without modifying discovery or the tool loop. |
 | **RuleLoaderService** | Loads policies from the database via Prisma, validates them with Zod, sorts by priority, converts DB rows into runtime Rules, and populates the cache. Owns the persistence→runtime boundary. |
 | **RuleCacheService** | Holds validated rules in memory for fast access during evaluation. Solely owned by the loader; nothing else mutates cached rules. |
 | **Redis subscriber** | Subscribes to the `policy:updated` channel and triggers rule reload on any message. Exists solely for synchronization — it never interprets rules, executes policies, or touches the registry. |
 | **ApprovalService** | Manages approval *state*: create approvals, approve, reject, read pending approvals. Also expires pending approvals older than 30 minutes (run once during bootstrap). Intentionally never executes tools. |
 | **ApprovalExecutionService** | Manages what happens *after* an approval: verifies status is `APPROVED`, then executes via the Registry. Separating this keeps approval persistence decoupled from tool execution. |
-| **PromptSecurityService** | Runs before the LLM: scans prompts for suspicious patterns (~40 hardcoded phrases covering injection, privilege escalation, destructive commands, and secret exfiltration — e.g. "ignore previous instructions", "act as root", "bypass security", "override policy", "disable guardrails"), returns structured findings, and logs them as `PROMPT_INJECTION` events. It detects but never blocks execution itself — enforcement remains policy-driven so future responses (warn, block, escalate, require approval) fit without redesign. |
+| **PromptSecurityService** | Runs before the LLM: three-layer scan (normalized patterns → embedding similarity against attack templates → LLM judge for the gray zone), returns structured findings with a 0–1 risk score. Enforcement is tiered and lives in the tool loop: every detection is logged (`PROMPT_INJECTION`), critical scores hard-block, non-critical ones inject a runtime warning into the system instruction. Detection and enforcement are separated so response strategies (block, warn, escalate, require approval) stay independently evolvable. |
 | **LogService** | Single logging abstraction; every subsystem writes `ToolExecutionLog` records through it. Provides consistent formatting, structured records, easier testing, and future integrations (cloud, OpenTelemetry). |
 | **RiskResolver** (in the registry package) | Resolves final runtime risk: inferred risk → database override lookup → final risk. The Policy Engine always consumes the resolved value; the tool loop also re-resolves at call time so overrides apply immediately. |
 
@@ -252,24 +253,26 @@ On the runtime `Rule`: the engine originally consumed raw Prisma rows, but their
 Every request follows a deterministic sequence — linear, observable, explainable, with no hidden execution paths or component bypassing another.
 
 ```text
-Client → Express Route → ToolLoopService → Prompt Security → ChatService (Gemini → Groq fallback)
+Client → Express Route → ToolLoopService → Context Load → Prompt Security
+→ [critical? → BLOCK] → ChatService (Gemini → Groq fallback, system instruction + history)
 → Function Call? → Policy Engine (ALLOW / DENY / REQUIRE_APPROVAL / …)
-→ Registry → MCP Server → Tool Result → LLM Summary → HTTP Response
+→ Registry → MCP Server → Tool Result → LLM Summary (no tools attached)
+→ Output Guard → HTTP Response
 ```
 
 1. **Incoming HTTP request** — e.g. `POST /api/chat {"message":"restart server srv-1"}`. Express parses JSON; the route creates or looks up the `Conversation` row so all messages and logs share a real `conversationId`.
-2. **Route** — extract prompt, delegate immediately (`ToolLoopService.run(prompt, conversationId)`). Routes contain almost no logic.
+2. **Route** — extract prompt, persist the USER message, delegate immediately (`ToolLoopService.run(prompt, conversationId)`). Routes contain almost no logic.
 3. **ToolLoopService** — owns the conversation loop and coordinates everything; it does not own policy logic, MCP execution, discovery, logging, or the Gemini implementation.
-4. **Prompt security** — `PromptSecurityService.scan()` searches for suspicious patterns. Current behavior: detection → audit log → continue uninterrupted. The user message is persisted before the LLM call.
-5. **Audit event** — suspicious content produces a `PROMPT_INJECTION` record via LogService (with the matched patterns in `reason`/`trace`).
-6. **LLM invocation** — `ChatService.generate(...)` handles provider selection and parsing. Tool definitions accompany the prompt so the LLM knows which MCP capabilities exist.
-7. **Gemini (primary)** — `gemini-2.5-flash` receives system instructions, user prompt, discovered tools, and conversation context; it either returns text or requests a function call. On failure, ChatService transparently falls back to Groq.
-8. **Groq fallback** — `llama-3.3-70b-versatile`. Groq calls use `retryWithBackoff` (3 attempts, delay doubling from 1s). Gemini function declarations are converted to OpenAI-style tool schemas, and the completion is wrapped back into a Gemini-shaped response, so ToolLoopService is provider-agnostic.
-9. **Response inspection** — normal text returns immediately; a function call continues the tool loop.
+4. **Context load** — persisted conversation history (last 20 USER/ASSISTANT messages; TOOL rows excluded; the just-persisted duplicate of the current prompt dropped) and the stored `Conversation.totalTokens` are loaded. DB failure degrades gracefully to stateless mode.
+5. **Prompt security** — `PromptSecurityService.scan()` runs the three-layer scanner (patterns → embeddings → LLM judge). Every suspicious prompt is logged (`PROMPT_INJECTION`, decision `ALLOW`). Enforcement is tiered: **critical** verdicts (score ≥ 0.85) hard-block with decision `DENY` before any LLM call; **suspicious** (non-critical) prompts continue with a security warning appended to the system instruction for that message.
+6. **LLM invocation** — `ChatService.generate(prompt, { tools, systemInstruction, history })` handles provider selection and parsing. The agent system instruction (identity + disclosure policy) and conversation history accompany **every** call; tool definitions accompany only tool-selection calls.
+7. **Gemini (primary)** — `gemini-2.5-flash` receives the system instruction, conversation history, user prompt, and discovered tools; it either returns text or requests a function call. On failure, ChatService transparently falls back to Groq.
+8. **Groq fallback** — `llama-3.3-70b-versatile`. Groq calls use `retryWithBackoff` (3 attempts, delay doubling from 1s). The system instruction and history are rebuilt as OpenAI-style messages (system + history + user), Gemini function declarations are converted to OpenAI tool schemas, and the completion is wrapped back into a Gemini-shaped response, so ToolLoopService is provider-agnostic. Security invariants survive failover.
+9. **Response inspection** — normal text goes through the Output Guard and returns; a function call continues the tool loop (bounded: the loop aborts after 5 iterations with a `TOOL_LOOP` DENY log).
 10. **Tool lookup** — `registry.getTool(toolName)` returns description, schema, owning server, risk, metadata.
 11. **Risk resolution** — effective risk = database override if present, otherwise the registry's stored risk.
 12. **PolicyRequest construction** — conversation ID, tool name, arguments enter the Policy Engine.
-13. **Policy evaluation** — pure inputs (request, cached rules, risk, token usage) produce one `PolicyDecision`. No databases, Redis, or Express involved during evaluation.
+13. **Policy evaluation** — pure inputs (request, cached rules, risk, cumulative token usage as `currentTokens`) produce one `PolicyDecision`. No databases, Redis, or Express involved during evaluation.
 14. **Decision handling** — three paths diverge:
     - **ALLOW** — `registry.executeTool()` runs the tool exactly once (no automatic retries — re-running destructive operations like restarting a server would be dangerous), result goes to the LLM for summarization, then returns. Execution is logged as `TOOL_EXECUTION`.
     - **DENY / VALIDATION_FAILED / BUDGET_EXCEEDED / ERROR** — audit logged with `executed: false`; the Registry never executes and MCP never receives the request. The user sees `"Tool blocked: <reason>"`.
@@ -277,10 +280,11 @@ Client → Express Route → ToolLoopService → Prompt Security → ChatService
 15. **Approval storage** — pending approvals store tool, original arguments, status (`PENDING` / `APPROVED` / `REJECTED` / `EXPIRED`), requested time, resolution time, and reason. Unresolved approvals expire after 30 minutes (expiry currently runs once at bootstrap).
 16. **Approval execution** — on administrator approval: Approval API → ApprovalService marks `APPROVED` → ApprovalExecutionService immediately executes through the Registry → result returned in the approval response → audit log (`APPROVAL_APPROVED`, decision ALLOW). Rejections are logged (`APPROVAL_REJECTED`, decision DENY) and never execute.
 17. **Registry execution** — locate server, transport, tool; run `callTool(...)`. Outcomes: success, validation error, execution error, transport failure — results are forwarded regardless.
-18. **Final LLM pass** — raw MCP output is not sent to users. The LLM receives the original prompt plus tool result with instructions to summarize and make no further tool calls, converting structured output into natural language.
-19. **Response** — final text plus `conversationId` return. The assistant message is persisted; no runtime state remains except logs, approvals, and database updates.
+18. **Final LLM pass** — raw MCP output is not sent to users. The LLM receives the original prompt plus the tool result wrapped in `<tool_result>` tags (marked as untrusted data, not instructions) with instructions to summarize. **No tools are attached to this call** — "no more tool calls" is enforced by capability removal, and the model cannot re-enter the tool loop from here.
+19. **Output guard** — model text is inspected before delivery: verbatim system-prompt sentinels and first-person model/provider identity disclosure are blocked (replaced with a fixed refusal, logged `OUTPUT_GUARD` / `DENY`); secret-shaped content is redacted in place (logged `OUTPUT_GUARD` / `ALLOW` with the redaction reason).
+20. **Response** — final text plus `conversationId` return. The assistant message is persisted and `Conversation.totalTokens` is incremented with the exchange's estimated usage; no runtime state remains except logs, approvals, and database updates.
 
-Component responsibilities within the pipeline: Prompt Security inspects, ChatService communicates, Policy Engine authorizes, Registry executes, LogService records, ApprovalService persists — no component performs another's job.
+Component responsibilities within the pipeline: Prompt Security inspects input, ChatService communicates, Policy Engine authorizes, Registry executes, Output Guard inspects responses, LogService records, ApprovalService persists — no component performs another's job.
 
 ## Logging Lifecycle
 
