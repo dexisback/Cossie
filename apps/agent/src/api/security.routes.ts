@@ -1,10 +1,16 @@
 import { Router } from "express";
 import { promptSecurityService } from "../services/prompt-security.service.js";
 import { logService } from "../services/log.service.js";
+import { rateLimitMiddleware } from "./middleware/rate-limit.middleware.js";
 
 export const securityRouter = Router();
 
-securityRouter.post("/security/scan", async (req, res) => {
+// Portfolio protection rate limiting:
+// - 15 requests per day per user (session + IP)
+// - 100 requests per day global (all users combined)
+const rateLimiter = rateLimitMiddleware({ dailyLimit: 15 });
+
+securityRouter.post("/security/scan", rateLimiter, async (req, res) => {
   try {
     const { prompt, conversationId } = req.body as {
       prompt?: string;

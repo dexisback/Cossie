@@ -20,6 +20,7 @@
     "@huggingface/transformers": "^4.2.0",
     "@upstash/context7-mcp": "^3.2.2",
     "@upstash/redis": "^1.38.0",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",
@@ -28,10 +29,12 @@
     "tsx": "^4.20.5"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@vitest/coverage-v8": "^2.1.9",
     "typescript": "^5.8.3",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "@types/node": "^22.0.0"
   }
 }

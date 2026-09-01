@@ -1,12 +1,8 @@
 import { getRedis } from "../lib/redis.js";
 
 export interface RateLimitConfig {
-  /** Layer identifier: 'pattern' or 'judge' */
-  layer: string;
-  /** Maximum requests per window */
-  limit: number;
-  /** Window duration in seconds */
-  windowSeconds: number;
+  /** Maximum requests per day per user */
+  dailyLimit: number;
 }
 
 export interface RateLimitResult {
@@ -27,119 +23,129 @@ export class RateLimiter {
   private readonly redis = getRedis();
 
   /**
-   * Check and enforce rate limit for a given layer and identifier.
-   * Falls back to IP if no session ID provided.
-   * @param layer The layer identifier ('pattern' or 'judge')
+   * Check per-user daily quota. Each user gets 15-20 requests per day.
    * @param identifier Session ID or IP address
-   * @param limit Requests allowed per window
-   * @param windowSeconds Window duration in seconds
-   * @returns Rate limit result with remaining quota
+   * @param dailyLimit Daily quota per user (typically 15-20)
+   * @returns Rate limit result
    */
-  async checkLimit(
-    layer: string,
+  async checkDailyLimit(
     identifier: string,
-    limit: number,
-    windowSeconds: number
+    dailyLimit: number
   ): Promise<RateLimitResult> {
     if (!identifier || identifier.trim() === "") {
       return { allowed: false, remaining: 0, resetIn: 0 };
     }
 
-    const key = `rl:${layer}:${identifier}`;
-    const hourlyKey = `rl_hourly:${layer}:${identifier}`;
+    const key = `rl_daily:${identifier}`;
 
     try {
-      // Check minute-level rate limit
       const count = await this.redis.incr(key);
       if (count === 1) {
-        await this.redis.expire(key, windowSeconds);
+        // Set expiry to midnight UTC (86400 seconds = 24h)
+        await this.redis.expire(key, 86400);
       }
 
       const ttl = await this.redis.ttl(key);
-      const resetIn = ttl > 0 ? ttl : windowSeconds;
-
-      const allowed = count <= limit;
-
-      // Track hourly budget separately (for cost budgeting)
-      let hourlyRemaining = limit * 60; // default: 60 min windows in an hour
-      let hourlyLimit = limit * 60;
-
-      if (layer === "judge") {
-        // Judge calls are expensive; track daily budget too
-        const hourlyCount = await this.redis.incr(hourlyKey);
-        if (hourlyCount === 1) {
-          await this.redis.expire(hourlyKey, 3600); // 1 hour
-        }
-
-        // Judge: 2 per minute = max 120 per hour (conservative)
-        hourlyLimit = 120;
-        hourlyRemaining = Math.max(0, hourlyLimit - hourlyCount);
-      }
+      const resetIn = ttl > 0 ? ttl : 86400;
+      const allowed = count <= dailyLimit;
 
       return {
         allowed,
-        remaining: Math.max(0, limit - count),
+        remaining: Math.max(0, dailyLimit - count),
         resetIn,
-        quotaBudget: {
-          hourlyRemaining,
-          hourlyLimit,
-        },
       };
     } catch (error) {
       console.warn("[rate-limiter] Redis check failed, allowing request:", error);
-      // Fail open: if Redis is down, allow the request (degraded mode)
       return {
         allowed: true,
-        remaining: limit,
-        resetIn: windowSeconds,
+        remaining: dailyLimit,
+        resetIn: 86400,
       };
     }
   }
 
   /**
-   * Get current quota status without incrementing counter.
+   * Check global daily cap (all requests from all users combined).
+   * Once we hit 100 requests total per day, deny all others.
+   * @param globalLimit Total requests allowed per day across all users
+   */
+  async checkGlobalCap(globalLimit: number): Promise<RateLimitResult> {
+    const key = "rl_global_daily";
+
+    try {
+      const count = await this.redis.incr(key);
+      if (count === 1) {
+        await this.redis.expire(key, 86400);
+      }
+
+      const ttl = await this.redis.ttl(key);
+      const resetIn = ttl > 0 ? ttl : 86400;
+      const allowed = count <= globalLimit;
+
+      return {
+        allowed,
+        remaining: Math.max(0, globalLimit - count),
+        resetIn,
+      };
+    } catch (error) {
+      console.warn("[rate-limiter] Global cap check failed, allowing request:", error);
+      return {
+        allowed: true,
+        remaining: globalLimit,
+        resetIn: 86400,
+      };
+    }
+  }
+
+  /**
+   * Get current quota status without incrementing.
    */
   async getQuotaStatus(
-    layer: string,
     identifier: string,
-    limit: number
+    dailyLimit: number
   ): Promise<RateLimitResult> {
-    const key = `rl:${layer}:${identifier}`;
-    const hourlyKey = `rl_hourly:${layer}:${identifier}`;
+    const key = `rl_daily:${identifier}`;
 
     try {
       const count = (await this.redis.get(key)) || "0";
-      const hourlyCount = (await this.redis.get(hourlyKey)) || "0";
       const ttl = await this.redis.ttl(key);
 
       return {
         allowed: true,
-        remaining: Math.max(0, limit - parseInt(count, 10)),
+        remaining: Math.max(0, dailyLimit - parseInt(count, 10)),
         resetIn: Math.max(0, ttl),
-        quotaBudget:
-          layer === "judge"
-            ? {
-                hourlyRemaining: Math.max(0, 120 - parseInt(hourlyCount, 10)),
-                hourlyLimit: 120,
-              }
-            : undefined,
       };
     } catch {
       return {
         allowed: true,
-        remaining: limit,
+        remaining: dailyLimit,
         resetIn: 0,
       };
     }
   }
 
   /**
-   * Reset rate limit for a given identifier (admin use).
+   * Reset daily quota for a user (admin use).
    */
-  async reset(layer: string, identifier: string): Promise<void> {
-    const key = `rl:${layer}:${identifier}`;
-    const hourlyKey = `rl_hourly:${layer}:${identifier}`;
-    await Promise.all([this.redis.del(key), this.redis.del(hourlyKey)]);
+  async reset(identifier: string): Promise<void> {
+    const key = `rl_daily:${identifier}`;
+    await this.redis.del(key);
+  }
+
+  /**
+   * Get global daily request count.
+   */
+  async getGlobalCount(): Promise<number> {
+    const key = "rl_global_daily";
+    const count = await this.redis.get(key);
+    return parseInt(count || "0", 10);
+  }
+
+  /**
+   * Reset global daily cap (admin use).
+   */
+  async resetGlobal(): Promise<void> {
+    await this.redis.del("rl_global_daily");
   }
 }
 

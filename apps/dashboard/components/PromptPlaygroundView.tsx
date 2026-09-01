@@ -53,6 +53,17 @@ function scoreBarColor(score: number): string {
   return "bg-[var(--status-ok)]";
 }
 
+// Import AlertTriangle from lucide-react if not already imported
+// It's already in the imports at the top
+
+interface RateLimitError {
+  error: string;
+  message: string;
+  resetIn: number;
+  remaining?: number;
+  reason?: string;
+}
+
 export function PromptPlaygroundView() {
   const [promptInput, setPromptInput] = useState("");
   const [scanning, setScanning] = useState(false);
@@ -60,6 +71,7 @@ export function PromptPlaygroundView() {
   const [logs, setLogs] = useState<InjectionLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(true);
   const [selectedLog, setSelectedLog] = useState<InjectionLog | null>(null);
+  const [rateLimitError, setRateLimitError] = useState<RateLimitError | null>(null);
 
   useEffect(() => {
     if (selectedLog) {
@@ -106,8 +118,23 @@ export function PromptPlaygroundView() {
 
     try {
       setScanning(true);
+      setRateLimitError(null);
 
       const res = await api.post("/api/security/scan", { prompt: trimmed });
+
+      // Handle rate limit (429)
+      if (res.status === 429) {
+        const errorData = (await res.json()) as RateLimitError;
+        // Calculate human-readable reset time
+        const resetDate = new Date(Date.now() + errorData.resetIn * 1000);
+        setRateLimitError({
+          ...errorData,
+          message: `${errorData.message} Resets at ${resetDate.toLocaleTimeString()}.`,
+        });
+        sound.playError();
+        return;
+      }
+
       if (!res.ok) throw new Error(`Scan failed (${res.status})`);
       const data = (await res.json()) as Omit<PromptScanData, "prompt">;
 
@@ -126,6 +153,14 @@ export function PromptPlaygroundView() {
       setScanning(false);
     }
   }
+
+  // Auto-dismiss rate limit error after 5 seconds
+  useEffect(() => {
+    if (rateLimitError) {
+      const timer = setTimeout(() => setRateLimitError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [rateLimitError]);
 
   return (
     <div className="space-y-8">
@@ -175,6 +210,28 @@ export function PromptPlaygroundView() {
           — patterns, embeddings, and an LLM judge.
         </p>
       </div>
+
+      {/* Rate Limit Notification Banner */}
+      {rateLimitError && (
+        <div className="p-4 rounded-lg border border-status-warn/30 bg-[color-mix(in_srgb,var(--status-warn)_5%,transparent)] flex items-center gap-3 animate-in fade-in slide-in-from-top duration-200">
+          <AlertTriangle size={16} className="text-status-warn shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-status-warn">
+              Daily quota reached
+            </p>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {rateLimitError.message}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setRateLimitError(null)}
+            className="shrink-0 p-1 hover:bg-muted/40 rounded transition-colors"
+          >
+            <X size={14} className="text-muted-foreground" />
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-12 gap-8">
         {/* Left Side - Playground console (60% width approx) */}

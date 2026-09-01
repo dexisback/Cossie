@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { approvalRouter } from "./approval.routes.js";
 import { chatRouter } from "./chat.routes.js";
 import { healthRouter } from "../health/health.route.js";
@@ -21,19 +22,16 @@ export function createServer() {
     .filter(Boolean);
 
   app.use(cors({ origin: allowedOrigins }));
+  app.use(express.json());
+  app.use(cookieParser());
 
-  app.use(
-    express.json()
-  );
-
- app.use("/api", chatRouter);
-
-app.use("/api", healthRouter);
-app.use("/api", approvalRouter);
-app.use("/api", logRouter);
-app.use("/api", toolRouter);
-app.use("/api", ruleRouter);
-app.use("/api", riskRouter);
-app.use("/api", securityRouter);
+  app.use("/api", chatRouter);
+  app.use("/api", healthRouter);
+  app.use("/api", approvalRouter);
+  app.use("/api", logRouter);
+  app.use("/api", toolRouter);
+  app.use("/api", ruleRouter);
+  app.use("/api", riskRouter);
+  app.use("/api", securityRouter);
   return app;
 }
