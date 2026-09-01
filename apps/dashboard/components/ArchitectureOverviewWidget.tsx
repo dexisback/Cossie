@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Shield, CircleDot, Scale } from "lucide-react";
+import { CircleDot } from "lucide-react";
 
 interface Node {
   id: string;
@@ -114,7 +114,7 @@ export function ArchitectureOverviewWidget() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div className="group p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.05),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)] flex flex-col justify-between gap-5">
+      <div className="p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between gap-5">
         <div>
           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground leading-relaxed">
             How Cossie Works
@@ -174,47 +174,44 @@ export function ArchitectureOverviewWidget() {
       </div>
 
       <div className="space-y-6">
-        <div className="group p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.05),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)] space-y-4">
+        <div className="p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] space-y-4">
           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground border-b border-white/[0.06] pb-3 leading-relaxed">
             Platform Capabilities
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-[10px]">
+          <div className="flex flex-wrap gap-1.5">
             {capabilities.map((cap) => (
-              <div
+              <span
                 key={cap}
-                className="flex items-center gap-2 text-muted-foreground font-semibold"
+                className="px-2 py-1 text-[10px] font-medium bg-muted/30 border border-border/60 rounded-md text-muted-foreground"
               >
-                <div className="p-0.5 chip chip-ok shrink-0">
-                  <Check size={10} strokeWidth={2.5} />
-                </div>
-                <span className="truncate">{cap}</span>
-              </div>
+                {cap}
+              </span>
             ))}
           </div>
         </div>
 
-        <div className="group p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] hover:shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_2px_4px_rgba(0,0,0,0.05),0_4px_8px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200 ease-[cubic-bezier(0.2,0,0,1)] space-y-4">
+        <div className="p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-white/[0.04] shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_2px_rgba(0,0,0,0.04),0_2px_4px_rgba(0,0,0,0.04),0_4px_8px_rgba(0,0,0,0.04)] space-y-4">
           <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground border-b border-white/[0.06] pb-3 leading-relaxed">
             Project Coverage
           </h4>
-          <div className="divide-y divide-white/[0.04] border border-white/[0.06] rounded-xl bg-background/30 overflow-hidden text-[10px] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.02)]">
+          <div className="divide-y divide-border/40 border border-border/60 rounded-xl overflow-hidden">
             {coverage.map((c) => (
               <div
                 key={c.req}
-                className="p-3 flex items-center justify-between font-semibold transition-colors hover:bg-white/[0.02]"
+                className="px-3 py-2 flex items-center justify-between"
               >
-                <span className="text-muted-foreground text-[11px]">
+                <span className="text-[11px] text-foreground font-medium">
                   {c.req}
                 </span>
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] ${
-                    c.status === "Bonus"
-                      ? "chip chip-special"
-                      : "chip chip-ok"
-                  }`}
-                >
-                  {c.status}
-                </span>
+                {c.status === "Bonus" ? (
+                  <span className="chip chip-special px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider rounded">
+                    Bonus
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-mono text-status-ok">
+                    done
+                  </span>
+                )}
               </div>
             ))}
           </div>

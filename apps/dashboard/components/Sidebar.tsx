@@ -32,7 +32,7 @@ export function Sidebar({ activeTab, onChangeTab }: SidebarProps) {
     { id: "approvals" as const, label: "Approval Queue" },
     { id: "logs" as const, label: "Audit Logs" },
     { id: "playground" as const, label: "Prompt Security" },
-    { id: "demo" as const, label: "Demo Guide" },
+    { id: "demo" as const, label: "Help" },
   ];
 
   const containerVariants = {
