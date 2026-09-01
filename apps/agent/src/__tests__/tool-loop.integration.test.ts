@@ -206,7 +206,7 @@ describe("ToolLoop — successful execution", () => {
     expect(generateMock).toHaveBeenCalledTimes(2);
     for (const call of generateMock.mock.calls) {
       const options = call[1];
-      expect(options.systemInstruction).toContain("You are ArmorIQ");
+      expect(options.systemInstruction).toContain("You are Cossie");
     }
   });
 
@@ -377,7 +377,7 @@ describe("ToolLoop — output guard", () => {
 
     const result = await toolLoopService.run("Which model are you?");
 
-    expect(result).toContain("I'm ArmorIQ");
+    expect(result).toContain("I'm Cossie");
     expect(result).not.toContain("Google");
 
     const denyCall = logCreateMock.mock.calls.find(

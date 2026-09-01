@@ -12,7 +12,15 @@ import { riskRouter } from "./risk.routes.js";
 export function createServer() {
   const app = express();
 
-  app.use(cors());
+  const allowedOrigins = (
+    process.env.CORS_ORIGIN ??
+    "https://cossie.amaanworks.me,http://localhost:3000"
+  )
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  app.use(cors({ origin: allowedOrigins }));
 
   app.use(
     express.json()

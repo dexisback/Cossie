@@ -574,7 +574,7 @@ The agent is hosted on Render's free tier, which spins a service down after ~15 
 
 You can override the target by setting a repo variable:
 
-- **Settings → Secrets and variables → Actions → Variables → `AGENT_URL`** = `https://cossie-6sbz.onrender.com`
+- **Settings → Secrets and variables → Actions → Variables → `AGENT_URL`** = `https://armoriq-assignment-6sbz.onrender.com`
 
 The default in the workflow already points at that URL, so no config is required for it to work out of the box. You can also trigger it manually with `workflow_dispatch` from the Actions tab.
 

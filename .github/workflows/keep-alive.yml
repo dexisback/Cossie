@@ -26,7 +26,7 @@ jobs:
       - name: Hit /api/health
         id: health
         env:
-          AGENT_URL: ${{ vars.AGENT_URL || 'https://cossie-6sbz.onrender.com' }}
+          AGENT_URL: ${{ vars.AGENT_URL || 'https://armoriq-assignment-6sbz.onrender.com' }}
         run: |
           url="${AGENT_URL%/}/api/health"
           echo "Pinging ${url}"
@@ -66,7 +66,7 @@ jobs:
 
       - name: Wake-up GET on root (extra nudge)
         env:
-          AGENT_URL: ${{ vars.AGENT_URL || 'https://cossie-6sbz.onrender.com' }}
+          AGENT_URL: ${{ vars.AGENT_URL || 'https://armoriq-assignment-6sbz.onrender.com' }}
         run: |
           # Some Render configs only treat the *first* request as the wake-up.
           # An additional cheap GET on the root path helps ensure the container
