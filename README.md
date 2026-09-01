@@ -156,3 +156,10 @@ The agent container runs the Express API, spawns the custom MCP server over stdi
 ## License
 
 Released under the [MIT License](./LICENSE).
+
+
+
+<img width="736" height="736" alt="CarManiac - Ford Sierra RS Cosworth _ Facebook" src="https://github.com/user-attachments/assets/a712baf6-ead8-4cee-9b7b-77497ebec298" />
+<br>
+(Cossie -> aka Cosworth) inspired by the legendary Ford Sierra RS Cosworth, built for rally, but sold on streets to meet homologation requirements. This build was made as an MVP SDE intern assignment for a Bombay based startup implementing the same, but ended up on my build list due to NO Response from the team 
+built with <3 by amaanworks/dextertwts/dexisback
