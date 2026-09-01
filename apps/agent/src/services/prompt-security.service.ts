@@ -1,6 +1,7 @@
 import { gemini } from "../lib/gemini.js";
 import { MODELS } from "../lib/models.js";
 import { ATTACK_TEMPLATES } from "./prompt-security/attack-templates.js";
+import { embedTexts } from "./local-embedder.js";
 
 const SUSPICIOUS_PATTERNS = [
   // prompt injection
@@ -53,14 +54,9 @@ const SUSPICIOUS_PATTERNS = [
   "what is your prompt",
 ];
 
-// Similarity at/above this is a direct template match.
-// Calibrated for gemini-embedding-001, whose cosine floor for unrelated text
-// sits around ~0.6: measured benign prompts peak at ~0.63 while paraphrased
-// and obfuscated attacks score 0.81+.
-const EMBED_DIRECT_THRESHOLD = 0.8;
-// Similarity in [GRAY_LOW, DIRECT) goes to the LLM judge.
-const EMBED_GRAY_THRESHOLD = 0.68;
-// Judge confidence required to convict in the gray zone.
+// Calibrated for all-MiniLM-L6-v2 (unrelated ~0.1, paraphrased attacks ~0.80+)
+const EMBED_DIRECT_THRESHOLD = 0.75; // hard block
+const EMBED_GRAY_THRESHOLD = 0.50;   // send to judge
 const JUDGE_MIN_CONFIDENCE = 0.6;
 
 export interface SimilarTemplate {
@@ -141,19 +137,15 @@ async function getTemplateEmbeddings(): Promise<EmbeddedTemplate[]> {
   if (templateCache) return templateCache;
   if (!templateCachePromise) {
     templateCachePromise = (async () => {
-      const response = await gemini.models.embedContent({
-        model: "gemini-embedding-001",
-        contents: ATTACK_TEMPLATES.map((t) => t.text),
-      });
-      const embeddings = response.embeddings ?? [];
+      const vectors = await embedTexts(ATTACK_TEMPLATES.map((t) => t.text));
       const embedded = ATTACK_TEMPLATES.map((template, i) => ({
-        vector: embeddings[i]?.values ?? [],
+        vector: vectors[i] ?? [],
         text: template.text,
         technique: template.technique,
       })).filter((t) => t.vector.length > 0);
       templateCache = embedded;
       return embedded;
-    })().catch((err) => {
+    })().catch((err: unknown) => {
       templateCachePromise = null;
       throw err;
     });
@@ -213,16 +205,11 @@ export class PromptSecurityService {
   async scan(prompt: string): Promise<PromptScanResult> {
     const normalized = normalizePrompt(prompt);
 
-    // ── Layer 1: normalized literal patterns ──────────────────────────
     const matchedPatterns = SUSPICIOUS_PATTERNS.filter((pattern) =>
       normalized.includes(normalizePrompt(pattern)),
     );
-    // Literal matches of known attack phrases are deterministic evidence —
-    // score them directly at the critical tier so they clear the hard-block
-    // threshold even when the embedding and judge layers are unavailable.
-    const patternScore = matchedPatterns.length ? 0.9 : 0;
+    const patternScore = matchedPatterns.length ? 0.9 : 0; // exact match → critical
 
-    // ── Layer 2: embedding similarity against known attack templates ──
     let similarTemplates: SimilarTemplate[] = [];
     let topSimilarity = 0;
     let degraded = false;
@@ -232,11 +219,8 @@ export class PromptSecurityService {
       if (templates.length === 0) {
         degraded = true;
       } else {
-        const input = await gemini.models.embedContent({
-          model: "gemini-embedding-001",
-          contents: prompt.slice(0, 2000),
-        });
-        const inputVector = input.embeddings?.[0]?.values ?? [];
+        const inputVectors = await embedTexts([prompt.slice(0, 1000)]);
+        const inputVector = inputVectors[0] ?? [];
         if (inputVector.length > 0) {
           similarTemplates = templates
             .map((t) => ({
@@ -257,7 +241,6 @@ export class PromptSecurityService {
       );
     }
 
-    // ── Layer 3: LLM judge for the gray zone ──────────────────────────
     const grayZone =
       topSimilarity >= EMBED_GRAY_THRESHOLD &&
       topSimilarity < EMBED_DIRECT_THRESHOLD;

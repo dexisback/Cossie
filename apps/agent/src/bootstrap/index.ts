@@ -2,9 +2,8 @@ import { discoverTools } from "./discover-tools.js";
 import { loadRules } from "./load-rules.js";
 import { startPolicySubscriber } from "../services/redis-subscriber.service.js";
 import { approvalService } from "../services/approval.service.js";
+import { warmupEmbedder } from "../services/local-embedder.js";
 
-// The database is remote (Neon over WebSocket). A transient network blip at
-// startup must not kill the agent — retry each bootstrap step before giving up.
 const BOOTSTRAP_RETRIES = 3;
 
 async function withRetry<T>(
@@ -38,4 +37,5 @@ export async function bootstrap() {
     await withRetry("expirePendingApprovals", () => approvalService.expirePending());
     console.log("approval expire checked")
 
+  void warmupEmbedder(); // non-blocking, lazy model load
 }

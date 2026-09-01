@@ -1,12 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock the Gemini client so tests run offline and deterministically. An empty
-// embeddings response puts the scanner into degraded (pattern-only) mode,
+// Mock the local embedder so tests run offline and deterministically.
+// Returning an empty array puts the scanner into degraded (pattern-only) mode,
 // which is exactly the layer these unit tests exercise.
+vi.mock("./local-embedder.js", () => ({
+  embedTexts: vi.fn().mockResolvedValue([]),
+  warmupEmbedder: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Keep the Gemini mock for judgePrompt (generateContent), which is still
+// called for gray-zone prompts. embedContent is no longer used.
 vi.mock("../lib/gemini.js", () => ({
   gemini: {
     models: {
-      embedContent: vi.fn().mockResolvedValue({ embeddings: [] }),
       generateContent: vi.fn(),
     },
   },

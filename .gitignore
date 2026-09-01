@@ -18,3 +18,6 @@ docs/
 # Testing
 coverage/
 *.tsbuildinfo
+
+# HuggingFace model weight cache (downloaded on first run, ~22 MB)
+.cache/
