@@ -22,7 +22,7 @@ securityRouter.post("/security/scan", async (req, res) => {
     if (result.suspicious) {
       await logService.create({
         toolName: "PROMPT_SECURITY",
-        decision: "ALLOW",
+        decision: "DENY",
         eventType: "PROMPT_INJECTION",
         arguments: { prompt },
         reason: result.technique

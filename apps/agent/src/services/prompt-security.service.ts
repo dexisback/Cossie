@@ -217,9 +217,10 @@ export class PromptSecurityService {
     const matchedPatterns = SUSPICIOUS_PATTERNS.filter((pattern) =>
       normalized.includes(normalizePrompt(pattern)),
     );
-    const patternScore = matchedPatterns.length
-      ? Math.min(0.6 + matchedPatterns.length * 0.1, 0.9)
-      : 0;
+    // Literal matches of known attack phrases are deterministic evidence —
+    // score them directly at the critical tier so they clear the hard-block
+    // threshold even when the embedding and judge layers are unavailable.
+    const patternScore = matchedPatterns.length ? 0.9 : 0;
 
     // ── Layer 2: embedding similarity against known attack templates ──
     let similarTemplates: SimilarTemplate[] = [];

@@ -155,18 +155,16 @@ export function PromptPlaygroundView() {
                   Decision policy:
                 </h4>
                 <ul className="space-y-1 list-disc pl-4 text-[10px]">
-                  <li>Suspicious prompts are logged, not blocked</li>
-                  <li>Execution continues as normal</li>
-                  <li>Full audit trail with score and evidence</li>
-                  <li>Admin visibility via this playground</li>
+                  <li>Critical-severity (score &ge; 0.85) — hard-blocked, never reaches the model</li>
+                  <li>Medium/high-severity — flagged, model warned to refuse entire message</li>
+                  <li>All suspicious prompts are logged with full audit trail</li>
+                  <li>Benign prompts pass through normally</li>
                 </ul>
               </div>
               <div className="p-2.5 bg-muted/20 border border-border rounded-lg text-[10px]">
                 <p className="italic">
-                  <strong>Why Log instead of Block?</strong> Logs prevent false
-                  positives. Legitimate developers and users frequently type
-                  injection keywords during education, research, or debugging
-                  workflows.
+                  <strong>This playground scans only.</strong> Hard-blocking and
+                  model-level enforcement happen in the main agent terminal.
                 </p>
               </div>
             </div>
@@ -309,8 +307,18 @@ export function PromptPlaygroundView() {
                   <span className="text-[9px] font-mono font-medium uppercase text-muted-foreground">
                     Decision
                   </span>
-                  <p className="font-medium text-foreground mt-0.5">
-                    {scanResult.suspicious ? "Logged" : "Passed"}
+                  <p className={`font-medium mt-0.5 ${
+                    !scanResult.suspicious
+                      ? "text-status-ok"
+                      : scanResult.severity === "critical"
+                        ? "text-status-critical"
+                        : "text-status-warn"
+                  }`}>
+                    {scanResult.suspicious
+                      ? scanResult.severity === "critical"
+                        ? "Would Block"
+                        : "Flagged"
+                      : "Passed"}
                   </p>
                 </div>
               </div>
