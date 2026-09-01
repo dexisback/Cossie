@@ -1,22 +1,49 @@
-import { prisma } from "@cossie/db";
-
 /**
- * Periodically delete old audit logs to prevent database storage exhaustion.
+ * Database cleanup service for preventing storage exhaustion.
  * Keeps only the last 7 days of logs.
+ * 
+ * NOTE: This service requires DATABASE_URL to be set.
+ * In test environments without DATABASE_URL, operations are no-ops.
  */
+
+let prisma: any = null;
+
+// Lazy-load prisma only when DATABASE_URL is available
+function getPrisma() {
+  if (prisma !== null) return prisma;
+  
+  // Skip in test environment or when DATABASE_URL not set
+  if (process.env.NODE_ENV === "test" || !process.env.DATABASE_URL) {
+    prisma = false; // Mark as unavailable
+    return null;
+  }
+
+  try {
+    const { prisma: client } = require("@cossie/db");
+    prisma = client;
+    return prisma;
+  } catch (error) {
+    console.warn("[db-cleanup] Failed to load Prisma client:", error);
+    prisma = false;
+    return null;
+  }
+}
+
 export class DbCleanupService {
   /**
    * Delete audit logs older than 7 days.
    * Run this daily via cron or on startup.
    */
   async cleanupOldLogs(): Promise<{ deleted: number }> {
+    const db = getPrisma();
+    if (!db) {
+      return { deleted: 0 };
+    }
+
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     try {
-      if (!prisma.toolExecutionLog) {
-        return { deleted: 0 };
-      }
-      const deleted = await prisma.toolExecutionLog.deleteMany({
+      const deleted = await db.toolExecutionLog.deleteMany({
         where: {
           createdAt: {
             lt: sevenDaysAgo,
@@ -38,9 +65,11 @@ export class DbCleanupService {
    * Get current audit log count (for monitoring).
    */
   async getLogCount(): Promise<number> {
+    const db = getPrisma();
+    if (!db) return 0;
+
     try {
-      if (!prisma.toolExecutionLog) return 0;
-      const count = await prisma.toolExecutionLog.count();
+      const count = await db.toolExecutionLog.count();
       return count;
     } catch {
       return 0;
@@ -54,13 +83,15 @@ export class DbCleanupService {
     eventType: string,
     daysOld: number
   ): Promise<{ deleted: number }> {
+    const db = getPrisma();
+    if (!db) {
+      return { deleted: 0 };
+    }
+
     const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
 
     try {
-      if (!prisma.toolExecutionLog) {
-        return { deleted: 0 };
-      }
-      const deleted = await prisma.toolExecutionLog.deleteMany({
+      const deleted = await db.toolExecutionLog.deleteMany({
         where: {
           eventType: eventType as any,
           createdAt: {
