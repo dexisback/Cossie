@@ -13,10 +13,10 @@ export class DbCleanupService {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     try {
-      if (!prisma.auditLog) {
+      if (!prisma.toolExecutionLog) {
         return { deleted: 0 };
       }
-      const deleted = await prisma.auditLog.deleteMany({
+      const deleted = await prisma.toolExecutionLog.deleteMany({
         where: {
           createdAt: {
             lt: sevenDaysAgo,
@@ -39,8 +39,8 @@ export class DbCleanupService {
    */
   async getLogCount(): Promise<number> {
     try {
-      if (!prisma.auditLog) return 0;
-      const count = await prisma.auditLog.count();
+      if (!prisma.toolExecutionLog) return 0;
+      const count = await prisma.toolExecutionLog.count();
       return count;
     } catch {
       return 0;
@@ -57,12 +57,12 @@ export class DbCleanupService {
     const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
 
     try {
-      if (!prisma.auditLog) {
+      if (!prisma.toolExecutionLog) {
         return { deleted: 0 };
       }
-      const deleted = await prisma.auditLog.deleteMany({
+      const deleted = await prisma.toolExecutionLog.deleteMany({
         where: {
-          eventType,
+          eventType: eventType as any,
           createdAt: {
             lt: cutoffDate,
           },
@@ -81,12 +81,3 @@ export class DbCleanupService {
 }
 
 export const dbCleanupService = new DbCleanupService();
-
-// Suppress test-environment cleanup errors
-if (process.env.NODE_ENV !== "test") {
-  setImmediate(() => {
-    dbCleanupService.cleanupOldLogs().catch(() => {
-      // Silently ignore in non-critical contexts
-    });
-  });
-}
