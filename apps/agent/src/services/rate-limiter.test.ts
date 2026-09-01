@@ -21,54 +21,64 @@ describe("RateLimiter", () => {
     vi.clearAllMocks();
   });
 
-  it("should allow request under limit", async () => {
+  it("should allow request under daily limit", async () => {
     const redis = getRedis();
     vi.mocked(redis.incr).mockResolvedValue(5); // 5th request
-    vi.mocked(redis.ttl).mockResolvedValue(55); // 55 seconds left
+    vi.mocked(redis.ttl).mockResolvedValue(82800); // ~23 hours left
 
-    const result = await rateLimiter.checkLimit("pattern", "ip-1.2.3.4", 20, 60);
+    const result = await rateLimiter.checkDailyLimit("ip-1.2.3.4", 15);
 
     expect(result.allowed).toBe(true);
-    expect(result.remaining).toBe(15);
-    expect(result.resetIn).toBe(55);
+    expect(result.remaining).toBe(10);
+    expect(result.resetIn).toBe(82800);
   });
 
-  it("should deny request exceeding limit", async () => {
+  it("should deny request exceeding daily limit", async () => {
     const redis = getRedis();
-    vi.mocked(redis.incr).mockResolvedValue(21); // 21st request, limit is 20
-    vi.mocked(redis.ttl).mockResolvedValue(30);
+    vi.mocked(redis.incr).mockResolvedValue(16); // 16th request, limit is 15
+    vi.mocked(redis.ttl).mockResolvedValue(43200);
 
-    const result = await rateLimiter.checkLimit("pattern", "ip-1.2.3.4", 20, 60);
+    const result = await rateLimiter.checkDailyLimit("ip-1.2.3.4", 15);
 
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);
   });
 
-  it("should track hourly budget for judge layer", async () => {
+  it("should allow request under global cap", async () => {
     const redis = getRedis();
-    vi.mocked(redis.incr).mockResolvedValue(1);
-    vi.mocked(redis.ttl).mockResolvedValue(60);
+    vi.mocked(redis.incr).mockResolvedValue(50); // 50 total requests
+    vi.mocked(redis.ttl).mockResolvedValue(43200);
 
-    const result = await rateLimiter.checkLimit("judge", "ip-1.2.3.4", 2, 60);
+    const result = await rateLimiter.checkGlobalCap(100);
 
-    expect(result.quotaBudget).toBeDefined();
-    expect(result.quotaBudget?.hourlyLimit).toBe(120);
     expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(50);
+  });
+
+  it("should deny request exceeding global cap", async () => {
+    const redis = getRedis();
+    vi.mocked(redis.incr).mockResolvedValue(101); // 101 total, cap is 100
+    vi.mocked(redis.ttl).mockResolvedValue(43200);
+
+    const result = await rateLimiter.checkGlobalCap(100);
+
+    expect(result.allowed).toBe(false);
+    expect(result.remaining).toBe(0);
   });
 
   it("should handle Redis failure gracefully (fail open)", async () => {
     const redis = getRedis();
     vi.mocked(redis.incr).mockRejectedValue(new Error("Redis connection failed"));
 
-    const result = await rateLimiter.checkLimit("pattern", "ip-1.2.3.4", 20, 60);
+    const result = await rateLimiter.checkDailyLimit("ip-1.2.3.4", 15);
 
     // Fail open: allow request
     expect(result.allowed).toBe(true);
-    expect(result.remaining).toBe(20);
+    expect(result.remaining).toBe(15);
   });
 
   it("should reject empty identifier", async () => {
-    const result = await rateLimiter.checkLimit("pattern", "", 20, 60);
+    const result = await rateLimiter.checkDailyLimit("", 15);
 
     expect(result.allowed).toBe(false);
     expect(result.remaining).toBe(0);

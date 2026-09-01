@@ -2,6 +2,7 @@ import { gemini } from "../lib/gemini.js";
 import { MODELS } from "../lib/models.js";
 import { ATTACK_TEMPLATES } from "./prompt-security/attack-templates.js";
 import { embedTexts } from "./local-embedder.js";
+import { dbCleanupService } from "./db-cleanup.service.js";
 
 const SUSPICIOUS_PATTERNS = [
   // prompt injection
@@ -320,10 +321,11 @@ export class PromptSecurityService {
 
 export const promptSecurityService = new PromptSecurityService();
 
-// Auto-cleanup old logs on startup
-import { dbCleanupService } from "./db-cleanup.service.js";
-setImmediate(() => {
-  dbCleanupService.cleanupOldLogs().catch((err) => {
-    console.warn("[startup] Initial db cleanup failed:", err);
+// Auto-cleanup old logs on startup (non-test environment)
+if (process.env.NODE_ENV !== "test") {
+  setImmediate(() => {
+    dbCleanupService.cleanupOldLogs().catch((err) => {
+      console.warn("[startup] Initial db cleanup failed:", err);
+    });
   });
-});
+}
