@@ -59,6 +59,9 @@ COPY --from=builder /app/apps/dashboard/.next ./apps/dashboard/.next
 COPY --from=builder /app/apps/dashboard/public ./apps/dashboard/public
 COPY --from=builder /app/apps/dashboard/package.json ./apps/dashboard/package.json
 COPY --from=builder /app/apps/dashboard/next.config.ts ./apps/dashboard/next.config.ts
+COPY --from=builder /app/apps/dashboard/.source ./apps/dashboard/.source
+COPY --from=builder /app/apps/dashboard/content ./apps/dashboard/content
+COPY --from=builder /app/apps/dashboard/source.config.ts ./apps/dashboard/source.config.ts
 
 # Copy shared types (needed at runtime for the rewrite/type resolution)
 COPY --from=builder /app/packages/shared-types ./packages/shared-types

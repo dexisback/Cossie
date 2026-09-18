@@ -21,3 +21,11 @@ coverage/
 
 # HuggingFace model weight cache (downloaded on first run, ~22 MB)
 .cache/
+
+# Local docs & configuration
+.node-version
+/DEPLOYMENT_CHECKLIST.md
+/DEPLOYMENT-CHECKLIST.md
+/IMPLEMENTATION_COMPLETE.md
+/IMPLEMENTATION_SUMMARY.md
+/RATE_LIMITING.md
