@@ -18,7 +18,7 @@ let loadingPromise: Promise<FeaturePipeline> | null = null;
 async function getModel(): Promise<FeaturePipeline> {
   if (modelInstance) return modelInstance;
   if (!loadingPromise) {
-    loadingPromise = (pipeline("feature-extraction", MODEL_ID, { quantized: true }) as Promise<FeaturePipeline>)
+    loadingPromise = (pipeline("feature-extraction", MODEL_ID, { dtype: "q8" }) as Promise<FeaturePipeline>)
       .then((p) => { modelInstance = p; console.log("[local-embedder] ready"); return p; })
       .catch((err: unknown) => { loadingPromise = null; throw err; });
   }
