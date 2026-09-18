@@ -25,6 +25,8 @@ export function createServer() {
   app.use(express.json());
   app.use(cookieParser());
 
+  app.get("/", (_req, res) => res.json({ status: "ok" }));
+  app.use("/health", healthRouter);
   app.use("/api", chatRouter);
   app.use("/api", healthRouter);
   app.use("/api", approvalRouter);

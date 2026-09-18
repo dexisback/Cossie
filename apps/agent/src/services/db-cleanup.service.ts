@@ -9,7 +9,7 @@
 let prisma: any = null;
 
 // Lazy-load prisma only when DATABASE_URL is available
-function getPrisma() {
+async function getPrisma() {
   if (prisma !== null) return prisma;
   
   // Skip in test environment or when DATABASE_URL not set
@@ -19,8 +19,8 @@ function getPrisma() {
   }
 
   try {
-    const { prisma: client } = require("@cossie/db");
-    prisma = client;
+    const db = await import("@cossie/db");
+    prisma = db.prisma;
     return prisma;
   } catch (error) {
     console.warn("[db-cleanup] Failed to load Prisma client:", error);
@@ -35,7 +35,7 @@ export class DbCleanupService {
    * Run this daily via cron or on startup.
    */
   async cleanupOldLogs(): Promise<{ deleted: number }> {
-    const db = getPrisma();
+    const db = await getPrisma();
     if (!db) {
       return { deleted: 0 };
     }
@@ -65,7 +65,7 @@ export class DbCleanupService {
    * Get current audit log count (for monitoring).
    */
   async getLogCount(): Promise<number> {
-    const db = getPrisma();
+    const db = await getPrisma();
     if (!db) return 0;
 
     try {
@@ -83,7 +83,7 @@ export class DbCleanupService {
     eventType: string,
     daysOld: number
   ): Promise<{ deleted: number }> {
-    const db = getPrisma();
+    const db = await getPrisma();
     if (!db) {
       return { deleted: 0 };
     }

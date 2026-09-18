@@ -43,7 +43,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 RUN corepack enable \
- && apk add --no-cache libc6-compat
+ && apk add --no-cache libc6-compat openssl
 
 ENV NODE_ENV=production
 ENV PORT=3000

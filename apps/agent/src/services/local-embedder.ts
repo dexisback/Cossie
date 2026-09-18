@@ -2,6 +2,11 @@ import { pipeline, env } from "@huggingface/transformers";
 
 if (process.env["HF_HOME"]) env.cacheDir = process.env["HF_HOME"]; // respect custom cache path
 
+// Configure ONNX runtime memory limits for resource-constrained containers
+if (env.backends?.onnx?.wasm) {
+  env.backends.onnx.wasm.numThreads = 1;
+}
+
 const MODEL_ID = "Xenova/all-MiniLM-L6-v2";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,7 +18,7 @@ let loadingPromise: Promise<FeaturePipeline> | null = null;
 async function getModel(): Promise<FeaturePipeline> {
   if (modelInstance) return modelInstance;
   if (!loadingPromise) {
-    loadingPromise = (pipeline("feature-extraction", MODEL_ID) as Promise<FeaturePipeline>)
+    loadingPromise = (pipeline("feature-extraction", MODEL_ID, { quantized: true }) as Promise<FeaturePipeline>)
       .then((p) => { modelInstance = p; console.log("[local-embedder] ready"); return p; })
       .catch((err: unknown) => { loadingPromise = null; throw err; });
   }
