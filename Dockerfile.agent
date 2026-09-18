@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ---------- Stage 1: build ----------
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -45,12 +45,11 @@ RUN pnpm --filter @cossie/custom-mcp build
 RUN pnpm prune --prod
 
 # ---------- Stage 2: runtime ----------
-FROM node:22-alpine AS runner
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
-RUN corepack enable \
- && apk add --no-cache libc6-compat
+RUN corepack enable
 
 ENV NODE_ENV=production
 
