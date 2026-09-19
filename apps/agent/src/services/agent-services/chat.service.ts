@@ -32,7 +32,7 @@ const lowercaseSchemaTypes = (schema: any): any => {
   return result;
 };
 
-async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
+async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 1, delay = 200): Promise<T> {
   try {
     return await fn();
   } catch (error) {
@@ -91,10 +91,12 @@ export class ChatService {
 
       const choice = completion.choices?.[0];
       const message = choice?.message;
+      const rawContent = message?.content ?? "";
+      const cleanedContent = rawContent.replace(/<think>[\s\S]*?<\/think>\s*/gi, "").trim();
       const parts: any[] = [];
 
-      if (message?.content) {
-        parts.push({ text: message.content });
+      if (cleanedContent) {
+        parts.push({ text: cleanedContent });
       }
 
       if (message?.tool_calls) {
@@ -117,7 +119,7 @@ export class ChatService {
           },
         ],
         get text() {
-          return message?.content || "";
+          return cleanedContent;
         },
       };
 

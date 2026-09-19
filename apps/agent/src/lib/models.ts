@@ -5,7 +5,7 @@
 // change models here
 
 export const MODELS = {
-  GROQ: "llama-3.3-70b-versatile",
+  GROQ: process.env.GROQ_MODEL || "qwen/qwen3.8-27b",
   GEMINI: "gemini-2.5-flash",
 } as const;
 

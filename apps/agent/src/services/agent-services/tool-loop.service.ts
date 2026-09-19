@@ -79,6 +79,38 @@ async function resolveEffectiveRisk(
   }
 }
 
+async function resolveAllEffectiveRisks(
+  tools: { name: string; riskLevel: RiskLevel }[]
+): Promise<Map<string, RiskLevel>> {
+  const riskMap = new Map<string, RiskLevel>();
+  try {
+    const overrides = await prisma.toolRiskOverride.findMany();
+    const overrideMap = new Map<string, RiskLevel>();
+    for (const o of overrides) {
+      overrideMap.set(o.toolName, o.riskLevel as RiskLevel);
+      if (o.toolName.includes(":")) {
+        overrideMap.set(o.toolName.split(":")[1]!, o.riskLevel as RiskLevel);
+      }
+    }
+
+    for (const tool of tools) {
+      const rawName = tool.name.includes(":") ? tool.name.split(":")[1]! : tool.name;
+      const effective =
+        overrideMap.get(tool.name) ??
+        overrideMap.get(rawName) ??
+        overrideMap.get(`context7:${rawName}`) ??
+        overrideMap.get(`infra-mcp:${rawName}`) ??
+        tool.riskLevel;
+      riskMap.set(tool.name, effective);
+    }
+  } catch {
+    for (const tool of tools) {
+      riskMap.set(tool.name, tool.riskLevel);
+    }
+  }
+  return riskMap;
+}
+
 export class ToolLoopService {
   /**
    * Loads persisted conversation context (Fix 4) and stored token usage
@@ -212,15 +244,14 @@ export class ToolLoopService {
     const activeRules =
       ruleCache.getRules();
 
+    const effectiveRiskMap = await resolveAllEffectiveRisks(discoveredTools);
+
     // ── Capability & Policy Pre-evaluation (Approach B: Prompt Steering) ───
     const blockedCapabilities: BlockedCapability[] = [];
     const availableTools: typeof discoveredTools = [];
 
     for (const tool of discoveredTools) {
-      const effectiveRisk = await resolveEffectiveRisk(
-        tool.name,
-        tool.riskLevel
-      );
+      const effectiveRisk = effectiveRiskMap.get(tool.name) ?? tool.riskLevel;
 
       let isBlocked = false;
       let blockReason = "";
