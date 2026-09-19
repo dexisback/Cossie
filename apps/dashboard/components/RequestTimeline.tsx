@@ -140,7 +140,7 @@ export function RequestTimeline({
                 {idx < liveStages.length - 1 && (
                   <div
                     className={`absolute left-[-19.5px] top-[14px] bottom-[-30px] w-[1px] z-0 transition-colors duration-200 ${
-                      isProcessed ? "bg-[#3ecf8e]/60" : isCurrent ? "bg-amber-400/50" : "bg-white/10"
+                      isProcessed ? "bg-[#3ecf8e]/60" : isCurrent ? "bg-accent/60" : "bg-white/10"
                     }`}
                   />
                 )}
@@ -150,7 +150,7 @@ export function RequestTimeline({
                     isProcessed
                       ? "bg-[#3ecf8e] scale-110"
                       : isCurrent
-                      ? "bg-amber-400 animate-pulse scale-125 ring-2 ring-amber-400/40"
+                      ? "bg-accent animate-pulse scale-125 ring-2 ring-accent/40"
                       : "bg-white/15"
                   }`}
                 />
@@ -167,7 +167,7 @@ export function RequestTimeline({
                     <h4
                       className={`text-sm font-bold leading-snug tracking-tight ${
                         isCurrent
-                          ? "text-amber-300"
+                          ? "text-accent"
                           : isProcessed
                           ? "text-foreground"
                           : "text-muted-foreground"
@@ -178,7 +178,7 @@ export function RequestTimeline({
                     <span
                       className={`text-[9px] font-mono px-1.5 py-0.5 rounded-sm border font-medium shrink-0 ${
                         isCurrent
-                          ? "text-amber-300 bg-amber-400/10 border-amber-400/25 animate-pulse"
+                          ? "text-accent bg-accent/15 border-accent/30 animate-pulse"
                           : isProcessed
                           ? "text-[#3ecf8e] bg-[#3ecf8e]/10 border-[#3ecf8e]/20"
                           : "text-muted-foreground/50 bg-white/5 border-white/5"
@@ -550,11 +550,11 @@ export function RequestTimeline({
         };
       case "Current":
         return {
-          marker: "bg-amber-400 animate-pulse scale-125 ring-2 ring-amber-400/40",
-          text: "text-amber-300 font-bold",
-          badge: "text-amber-300 bg-amber-400/10 border-amber-400/25 animate-pulse",
+          marker: "bg-accent animate-pulse scale-125 ring-2 ring-accent/40",
+          text: "text-accent font-bold",
+          badge: "text-accent bg-accent/15 border-accent/30 animate-pulse",
           badgeText: "awaiting approval",
-          line: "bg-amber-400/50",
+          line: "bg-accent/60",
         };
       case "Skipped":
         return {
