@@ -12,10 +12,25 @@ export interface ChatHistoryMessage {
 }
 
 export interface GenerateOptions {
-  tools?: unknown[];
-  systemInstruction?: string;
-  history?: ChatHistoryMessage[];
+  tools?: unknown[] | undefined;
+  systemInstruction?: string | undefined;
+  history?: ChatHistoryMessage[] | undefined;
 }
+
+const lowercaseSchemaTypes = (schema: any): any => {
+  if (!schema || typeof schema !== "object") {
+    return schema;
+  }
+  const result = Array.isArray(schema) ? [] : {};
+  for (const key of Object.keys(schema)) {
+    if (key === "type" && typeof schema[key] === "string") {
+      (result as any)[key] = schema[key].toLowerCase();
+    } else {
+      (result as any)[key] = lowercaseSchemaTypes(schema[key]);
+    }
+  }
+  return result;
+};
 
 async function retryWithBackoff<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
   try {
