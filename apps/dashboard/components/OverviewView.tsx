@@ -194,6 +194,7 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
       ).length || 0,
   };
 
+  const recentLogs = logs.slice(0, 8);
   const [helpOpen, setHelpOpen] = useState(false);
   const [activityHelpOpen, setActivityHelpOpen] = useState(false);
 
