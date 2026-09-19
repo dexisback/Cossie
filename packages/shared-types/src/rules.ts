@@ -54,7 +54,9 @@ export const BudgetRuleSchema = z.object({
 
 export const RiskBasedRuleSchema = z.object({
   type: z.literal("RISK_BASED"),
-  riskLevel: RiskLevelSchema,
+  riskLevel: RiskLevelSchema.optional(),
+  minimumRisk: RiskLevelSchema.optional(),
+  decision: z.enum(["ALLOW", "DENY", "REQUIRE_APPROVAL", "VALIDATION_FAILED"]).optional().default("REQUIRE_APPROVAL"),
   name: z.string().optional(),
   description: z.string().optional(),
 });

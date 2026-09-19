@@ -3,6 +3,7 @@ import { Router } from "express";
 import { prisma } from "@cossie/db";
 
 import { redisPublisher } from "../services/redis-publisher.service.js";
+import { loadRules } from "../services/rule-loader.service.js";
 
 export const ruleRouter = Router();
 
@@ -29,7 +30,8 @@ ruleRouter.post(
           data: req.body,
         });
 
-      await redisPublisher();
+      await loadRules().catch(console.error);
+      await redisPublisher().catch(console.error);
 
       return res
         .status(201)
@@ -60,7 +62,8 @@ ruleRouter.patch(
           data: req.body,
         });
 
-      await redisPublisher();
+      await loadRules().catch(console.error);
+      await redisPublisher().catch(console.error);
 
       return res.json(rule);
     } catch (error) {
@@ -86,7 +89,8 @@ ruleRouter.delete(
         },
       });
 
-      await redisPublisher();
+      await loadRules().catch(console.error);
+      await redisPublisher().catch(console.error);
 
       return res
         .status(204)

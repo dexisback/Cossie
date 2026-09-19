@@ -3,11 +3,16 @@ import type {
   PolicyRequest,
 } from "@cossie/shared-types";
 
+function toolNameMatches(ruleToolName: string, requestedToolName: string): boolean {
+  if (ruleToolName === requestedToolName) return true;
+  const rawRule = ruleToolName.includes(":") ? ruleToolName.split(":")[1]! : ruleToolName;
+  const rawRequested = requestedToolName.includes(":") ? requestedToolName.split(":")[1]! : requestedToolName;
+  return rawRule === rawRequested;
+}
+
 export function matchesApprovalRule(
   rule: ApprovalRule,
   request: PolicyRequest
 ) {
-  return rule.toolNames.includes(request.toolName);
+  return rule.toolNames.some((name) => toolNameMatches(name, request.toolName));
 }
-
-//checks if the tool gonna be used require approval , if it does then it returns true/false

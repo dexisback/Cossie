@@ -13,7 +13,7 @@
 
 import { logService } from "../log.service.js";
 import { promptSecurityService } from "../prompt-security.service.js";
-import { policyEngine } from "@cossie/policy-engine";
+import { matchesBlockToolRule, matchesRiskRule, policyEngine } from "@cossie/policy-engine";
 import { registry } from "@cossie/mcp-registry";
 import { prisma } from "@cossie/db";
 
@@ -23,7 +23,12 @@ import { chatService } from "./chat.service.js";
 import type { ChatHistoryMessage } from "./chat.service.js";
 import { toolAdapterService } from "./tool-adapter.service.js";
 import { approvalService } from "../approval.service.js";
-import { AGENT_SYSTEM_PROMPT, buildInjectionWarning } from "./agent-prompt.js";
+import {
+  AGENT_SYSTEM_PROMPT,
+  buildInjectionWarning,
+  buildPolicyDirective,
+  type BlockedCapability,
+} from "./agent-prompt.js";
 import { outputGuardService, OUTPUT_GUARD_REFUSAL } from "./output-guard.service.js";
 import { estimateTokens } from "./token-estimate.js";
 
@@ -46,12 +51,25 @@ async function resolveEffectiveRisk(
   registryRisk: RiskLevel
 ): Promise<RiskLevel> {
   try {
-    const override =
-      await prisma.toolRiskOverride.findUnique(
-        {
-          where: { toolName },
-        }
-      );
+    const rawName = toolName.includes(":") ? toolName.split(":")[1]! : toolName;
+    let override = await prisma.toolRiskOverride.findUnique({
+      where: { toolName },
+    });
+    if (!override && toolName !== rawName) {
+      override = await prisma.toolRiskOverride.findUnique({
+        where: { toolName: rawName },
+      });
+    }
+    if (!override) {
+      override = await prisma.toolRiskOverride.findFirst({
+        where: {
+          OR: [
+            { toolName: `context7:${rawName}` },
+            { toolName: `infra-mcp:${rawName}` },
+          ],
+        },
+      });
+    }
     return (
       (override?.riskLevel as RiskLevel) ??
       registryRisk
@@ -183,10 +201,6 @@ export class ToolLoopService {
       return PROMPT_INJECTION_BLOCK_MESSAGE;
     }
 
-    const systemInstruction = scan.suspicious
-      ? `${AGENT_SYSTEM_PROMPT}\n\n${buildInjectionWarning(scan)}`
-      : AGENT_SYSTEM_PROMPT;
-
     // ── Operational plane: conversation budget (Fix 5) ────────────────
     const currentTokens =
       storedTokens +
@@ -195,10 +209,70 @@ export class ToolLoopService {
 
     const discoveredTools =
       registry.getTools();
+    const activeRules =
+      ruleCache.getRules();
+
+    // ── Capability & Policy Pre-evaluation (Approach B: Prompt Steering) ───
+    const blockedCapabilities: BlockedCapability[] = [];
+    const availableTools: typeof discoveredTools = [];
+
+    for (const tool of discoveredTools) {
+      const effectiveRisk = await resolveEffectiveRisk(
+        tool.name,
+        tool.riskLevel
+      );
+
+      let isBlocked = false;
+      let blockReason = "";
+
+      for (const rule of activeRules) {
+        if (rule.type === "BLOCK_TOOL") {
+          if (
+            matchesBlockToolRule(rule, {
+              conversationId,
+              toolName: tool.name,
+              args: {},
+            })
+          ) {
+            isBlocked = true;
+            blockReason = rule.name || `Tool ${tool.name} is blocked by policy`;
+            break;
+          }
+        } else if (rule.type === "RISK_BASED" && rule.decision === "DENY") {
+          if (matchesRiskRule(rule, effectiveRisk)) {
+            isBlocked = true;
+            const targetRiskName =
+              rule.minimumRisk || rule.riskLevel || "HIGH";
+            blockReason =
+              rule.name ||
+              `${targetRiskName} risk level tool action blocked by policy`;
+            break;
+          }
+        }
+      }
+
+      if (isBlocked) {
+        blockedCapabilities.push({
+          toolName: tool.name,
+          description: tool.description,
+          reason: blockReason,
+        });
+      } else {
+        availableTools.push(tool);
+      }
+    }
+
+    let systemInstruction = scan.suspicious
+      ? `${AGENT_SYSTEM_PROMPT}\n\n${buildInjectionWarning(scan)}`
+      : AGENT_SYSTEM_PROMPT;
+
+    if (blockedCapabilities.length > 0) {
+      systemInstruction += `\n\n${buildPolicyDirective(blockedCapabilities)}`;
+    }
 
     const geminiTools =
       toolAdapterService.toGeminiTools(
-        discoveredTools
+        availableTools
       );
 
     let response =

@@ -140,21 +140,26 @@ export function evaluateRiskRule(
     riskLevel as never
   );
 
+  const targetRiskName = rule.minimumRisk || rule.riskLevel || "HIGH";
+
   trace.push({
     rule: "RISK_BASED",
     matched,
     message: matched
-      ? "Risk rule matched"
+      ? `Risk rule matched (tool risk ${riskLevel} >= minimum ${targetRiskName})`
       : "Risk rule not matched",
   });
 
   if (!matched) return null;
 
+  const decision =
+    rule.decision === "DENY"
+      ? PolicyDecisionTypeSchema.enum.DENY
+      : PolicyDecisionTypeSchema.enum.REQUIRE_APPROVAL;
+
   return {
-    decision:
-      PolicyDecisionTypeSchema.enum.REQUIRE_APPROVAL,
-    reason:
-      "High risk action requires approval",
+    decision,
+    reason: `${targetRiskName} risk level tool action ${decision === "DENY" ? "blocked by policy" : "requires approval"}`,
     matchedRule: rule.name,
     trace,
   };

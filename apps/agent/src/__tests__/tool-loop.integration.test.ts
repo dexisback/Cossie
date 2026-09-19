@@ -251,6 +251,32 @@ describe("ToolLoop — blocked tool", () => {
     expect(logCall.matchedRule).toBe("no-delete");
     expect(logCall.eventType).toBe("TOOL_EXECUTION");
   });
+
+  it("injects policy directive into system instruction when a tool is blocked by policy", async () => {
+    seedTool(makeTool("get-library-docs", "CRITICAL"));
+    const rules: Rule[] = [
+      {
+        type: "RISK_BASED",
+        minimumRisk: "CRITICAL",
+        decision: "DENY",
+        name: "block-critical-ops",
+      },
+    ];
+    ruleCache.setRules(rules);
+    generateMock.mockResolvedValueOnce(
+      finalTextResponse("I cannot fetch documentation because that action is blocked by security policy.")
+    );
+
+    const result = await toolLoopService.run("get library docs");
+
+    expect(result).toContain("blocked by security policy");
+    expect(generateMock).toHaveBeenCalledTimes(1);
+
+    const options = generateMock.mock.calls[0][1];
+    expect(options.systemInstruction).toContain("ORGANIZATIONAL SECURITY & POLICY DIRECTIVES");
+    expect(options.systemInstruction).toContain("get-library-docs");
+    expect(options.tools).toBeUndefined();
+  });
 });
 
 // ====================================================================

@@ -11,6 +11,9 @@ export class ToolAdapterService {
   toGeminiTools(
     tools: DiscoveredTool[]
   ) {
+    if (!tools || tools.length === 0) {
+      return undefined;
+    }
     return [
       {
         functionDeclarations:
