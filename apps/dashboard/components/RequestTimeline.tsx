@@ -25,17 +25,187 @@ interface TimelineNode {
 }
 
 interface RequestTimelineProps {
-  targetLog: any;
-  allLogs: any[];
+  targetLog?: any;
+  allLogs?: any[];
+  livePrompt?: string | null;
+  isLiveRunning?: boolean;
 }
 
-export function RequestTimeline({ targetLog, allLogs }: RequestTimelineProps) {
+export function RequestTimeline({
+  targetLog,
+  allLogs = [],
+  livePrompt,
+  isLiveRunning,
+}: RequestTimelineProps) {
   const [expandedNodeIndex, setExpandedNodeIndex] = useState<number | null>(null);
+
+  if (isLiveRunning) {
+    const liveStages: TimelineNode[] = [
+      {
+        title: "User Prompt",
+        timestamp: new Date().toISOString(),
+        status: "Completed",
+        icon: "user",
+        details: {
+          "Input Mode": "Live Agent Run",
+          "Prompt": livePrompt || "Executing request...",
+        },
+      },
+      {
+        title: "Prompt Security Scan",
+        timestamp: new Date().toISOString(),
+        status: "Current",
+        icon: "shield",
+        details: {
+          "Status": "ANALYZING",
+          "Analysis": "Scanning patterns, embeddings, and prompt guardrails...",
+        },
+      },
+      {
+        title: "LLM Reasoning & Function Selection",
+        timestamp: new Date().toISOString(),
+        status: "Pending",
+        icon: "cpu",
+        details: {
+          "Status": "AWAITING_MODEL",
+          "Info": "Model reasoning about which MCP tool to invoke...",
+        },
+      },
+      {
+        title: "Policy Evaluation",
+        timestamp: new Date().toISOString(),
+        status: "Pending",
+        icon: "policy",
+        details: {
+          "Status": "AWAITING_POLICY",
+          "Info": "Will evaluate proposed tool against active security rules.",
+        },
+      },
+      {
+        title: "Decision: AUTHORIZATION",
+        timestamp: new Date().toISOString(),
+        status: "Pending",
+        icon: "decision",
+        details: {
+          "Status": "PENDING",
+          "Info": "Determines ALLOW, DENY, or REQUIRE_APPROVAL.",
+        },
+      },
+      {
+        title: "Tool Execution (MCP)",
+        timestamp: new Date().toISOString(),
+        status: "Pending",
+        icon: "play",
+        details: {
+          "Status": "PENDING",
+          "Info": "Executes on MCP server only if permitted by policy.",
+        },
+      },
+      {
+        title: "Assistant Responded",
+        timestamp: new Date().toISOString(),
+        status: "Pending",
+        icon: "chat",
+        details: {
+          "Status": "PENDING",
+          "Info": "Final sanitized response delivered to console.",
+        },
+      },
+    ];
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3 shrink-0">
+          <div className="flex flex-col gap-0.5">
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+              Request Journey
+              <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-mono bg-accent/15 text-accent border border-accent/25 animate-pulse">
+                LIVE RUNNING
+              </span>
+            </h4>
+            <p className="text-[10px] text-muted-foreground">
+              Tracing current AI request in real-time.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative pl-6 space-y-6">
+          {liveStages.map((stage, idx) => {
+            const isProcessed = stage.status === "Completed" || stage.status === "Failed";
+            const isCurrent = stage.status === "Current";
+            const isExpanded = expandedNodeIndex === idx;
+            const firstDetail = Object.values(stage.details)[0] || "";
+
+            return (
+              <div key={idx} className="relative z-10 pl-6 pb-2 last:pb-0">
+                {idx < liveStages.length - 1 && (
+                  <div
+                    className={`absolute left-[-19.5px] top-[14px] bottom-[-30px] w-[1px] z-0 transition-colors duration-200 ${
+                      isProcessed ? "bg-accent" : "bg-border"
+                    }`}
+                  />
+                )}
+
+                <span
+                  className={`absolute left-[-24px] top-[4px] h-2.5 w-2.5 rounded-none z-10 transition-all duration-200 ${
+                    isProcessed
+                      ? "bg-accent scale-110"
+                      : isCurrent
+                      ? "bg-accent/80 animate-pulse scale-125 ring-2 ring-accent/30"
+                      : "bg-muted-foreground/30"
+                  }`}
+                />
+
+                <div className="space-y-1">
+                  <span className="text-[9px] font-mono text-muted-foreground/75 uppercase tracking-wider block">
+                    // STEP 0{idx + 1}
+                  </span>
+
+                  <div
+                    onClick={() => setExpandedNodeIndex(isExpanded ? null : idx)}
+                    className="flex items-center justify-between gap-2 group cursor-pointer"
+                  >
+                    <h4 className={`text-sm font-bold leading-snug tracking-tight ${
+                      isCurrent ? "text-accent" : isProcessed ? "text-foreground" : "text-muted-foreground"
+                    }`}>
+                      {stage.title}
+                    </h4>
+                    <span className="text-[9px] font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded-sm border border-border font-medium shrink-0">
+                      {isCurrent ? "processing..." : stage.status === "Completed" ? "done" : "pending"}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {typeof firstDetail === "object" ? JSON.stringify(firstDetail) : String(firstDetail)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   if (!targetLog) {
     return (
-      <div className="p-6 text-center border border-border rounded-xl bg-card">
-        <p className="text-xs text-muted-foreground">No request timeline available.</p>
+      <div className="space-y-4">
+        <div className="border-b border-border pb-3">
+          <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
+            Request Journey
+          </h4>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            Visual trace timeline of the AI request lifecycle.
+          </p>
+        </div>
+        <div className="app-hatch rounded-lg border border-dashed border-border/70 py-10 flex flex-col items-center justify-center gap-1">
+          <p className="text-[10px] text-muted-foreground bg-background px-2 py-0.5">
+            No requests traced yet
+          </p>
+          <p className="text-[9px] text-muted-foreground/60 bg-background px-2">
+            Run a prompt or test scenario to trace its live lifecycle here.
+          </p>
+        </div>
       </div>
     );
   }

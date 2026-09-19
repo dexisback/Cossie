@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "framer-motion";
 import { SendHorizontal, Square } from "lucide-react";
 import { Conversation } from "./Conversation";
 import { ChatMessage } from "./MessageBubble";
 import { api } from "../lib/api";
+import { getQueryKeys } from "../lib/queries";
 
 function Bolt({ className }: { className: string }) {
   return (
@@ -88,6 +89,9 @@ export function AgentCard() {
   const abortRef = useRef<AbortController | null>(null);
   const reduce = useReducedMotion();
 
+  const queryClient = useQueryClient();
+  const keys = getQueryKeys();
+
   const chatMutation = useMutation({
     mutationFn: async (messageText: string) => {
       const controller = new AbortController();
@@ -117,6 +121,14 @@ export function AgentCard() {
           createdAt: new Date(),
         },
       ]);
+      queryClient.invalidateQueries({ queryKey: keys.logs });
+      queryClient.invalidateQueries({ queryKey: keys.approvals });
+      queryClient.invalidateQueries({ queryKey: keys.system });
+      window.dispatchEvent(
+        new CustomEvent("cossie:request-completed", {
+          detail: { timestamp: Date.now(), data },
+        })
+      );
     },
     onError: (error) => {
       setMessages((prev) => [
@@ -131,6 +143,12 @@ export function AgentCard() {
           createdAt: new Date(),
         },
       ]);
+      queryClient.invalidateQueries({ queryKey: keys.logs });
+      window.dispatchEvent(
+        new CustomEvent("cossie:request-completed", {
+          detail: { timestamp: Date.now(), error },
+        })
+      );
     },
   });
 
@@ -155,6 +173,11 @@ export function AgentCard() {
       createdAt: new Date(),
     };
     setMessages((prev) => [...prev, userMsg]);
+    window.dispatchEvent(
+      new CustomEvent("cossie:request-started", {
+        detail: { prompt: text, timestamp: Date.now() },
+      })
+    );
     chatMutation.mutate(text);
   }
 

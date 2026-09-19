@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AgentCard } from "./AgentCard";
 import { RequestTimeline } from "./RequestTimeline";
@@ -194,10 +194,52 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
       ).length || 0,
   };
 
-  const recentLogs = logs.slice(0, 8);
-  const allLogs = logs;
   const [helpOpen, setHelpOpen] = useState(false);
   const [activityHelpOpen, setActivityHelpOpen] = useState(false);
+
+  // Live session trace state: resets on page refresh/reload
+  const [activeRunLog, setActiveRunLog] = useState<any | null>(null);
+  const [activeRunPrompt, setActiveRunPrompt] = useState<string | null>(null);
+  const [isLiveRunning, setIsLiveRunning] = useState<boolean>(false);
+  const [runStartTime, setRunStartTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    function handleRequestStarted(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      setIsLiveRunning(true);
+      setActiveRunPrompt(detail?.prompt || "");
+      setRunStartTime(detail?.timestamp || Date.now());
+      setActiveRunLog(null);
+    }
+
+    function handleRequestCompleted(e: Event) {
+      setTimeout(() => {
+        setIsLiveRunning(false);
+      }, 500);
+    }
+
+    window.addEventListener("cossie:request-started", handleRequestStarted);
+    window.addEventListener("cossie:request-completed", handleRequestCompleted);
+    return () => {
+      window.removeEventListener("cossie:request-started", handleRequestStarted);
+      window.removeEventListener("cossie:request-completed", handleRequestCompleted);
+    };
+  }, []);
+
+  // Update activeRunLog when new logs arrive after runStartTime
+  useEffect(() => {
+    if (runStartTime && logs.length > 0) {
+      const matchingLog = logs.find((l: any) => {
+        const logTime = new Date(l.createdAt).getTime();
+        return logTime >= runStartTime - 3000;
+      });
+      if (matchingLog) {
+        setActiveRunLog(matchingLog);
+      } else if (logs[0] && isLiveRunning) {
+        setActiveRunLog(logs[0]);
+      }
+    }
+  }, [logs, runStartTime, isLiveRunning]);
 
   const stats = [
     {
@@ -266,28 +308,12 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
         {/* Right: Request Journey */}
         <div className="col-span-12 lg:col-span-4">
           <div className="border border-border/60 rounded-xl bg-card/40 p-5 overflow-hidden">
-            {recentLogs.length > 0 ? (
-              <RequestTimeline targetLog={recentLogs[0]} allLogs={allLogs} />
-            ) : (
-              <div className="space-y-4">
-                <div className="border-b border-border pb-3">
-                  <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-foreground">
-                    Request Journey
-                  </h4>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Visual trace timeline of the AI request lifecycle.
-                  </p>
-                </div>
-                <div className="app-hatch rounded-lg border border-dashed border-border/70 py-10 flex flex-col items-center justify-center gap-1">
-                  <p className="text-[10px] text-muted-foreground bg-background px-2 py-0.5">
-                    No requests traced yet
-                  </p>
-                  <p className="text-[9px] text-muted-foreground/60 bg-background px-2">
-                    Run a test scenario to see the lifecycle here.
-                  </p>
-                </div>
-              </div>
-            )}
+            <RequestTimeline
+              targetLog={activeRunLog}
+              allLogs={logs}
+              livePrompt={activeRunPrompt}
+              isLiveRunning={isLiveRunning}
+            />
           </div>
         </div>
       </div>
