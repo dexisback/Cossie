@@ -2,7 +2,7 @@ import { discoverTools } from "./discover-tools.js";
 import { loadRules } from "./load-rules.js";
 import { startPolicySubscriber } from "../services/redis-subscriber.service.js";
 import { approvalService } from "../services/approval.service.js";
-import { warmupEmbedder } from "../services/local-embedder.js";
+import { warmupPromptSecurity } from "../services/prompt-security.service.js";
 
 const BOOTSTRAP_RETRIES = 3;
 
@@ -37,5 +37,5 @@ export async function bootstrap() {
     await withRetry("expirePendingApprovals", () => approvalService.expirePending());
     console.log("approval expire checked")
 
-  void warmupEmbedder(); // non-blocking, lazy model load
+  void warmupPromptSecurity(); // non-blocking, warms embedder & caches 25 attack vectors
 }

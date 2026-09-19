@@ -37,48 +37,8 @@ export class ChatService {
   ) {
     const { tools, systemInstruction, history = [] } = options;
 
+    // ── Primary Path: Groq (llama-3.3-70b-versatile) ───────────────────
     try {
-      const config: any = {};
-      if (tools) {
-        config.tools = JSON.parse(JSON.stringify(tools));
-      }
-      if (systemInstruction) {
-        config.systemInstruction = systemInstruction;
-      }
-
-      const contents = [
-        ...history.map(m => ({
-          role: m.role === "ASSISTANT" ? "model" : "user",
-          parts: [{ text: m.content }],
-        })),
-        { role: "user", parts: [{ text: prompt }] },
-      ];
-
-      const response = await gemini.models.generateContent({
-        model: MODELS.GEMINI,
-        contents,
-        config,
-      });
-
-      return response;
-    } catch (geminiError: any) {
-      console.warn("Gemini call failed. Falling back to Groq...", geminiError.message || geminiError);
-
-      const lowercaseSchemaTypes = (schema: any): any => {
-        if (!schema || typeof schema !== "object") {
-          return schema;
-        }
-        const result = Array.isArray(schema) ? [] : {};
-        for (const key of Object.keys(schema)) {
-          if (key === "type" && typeof schema[key] === "string") {
-            (result as any)[key] = schema[key].toLowerCase();
-          } else {
-            (result as any)[key] = lowercaseSchemaTypes(schema[key]);
-          }
-        }
-        return result;
-      };
-
       const declarations = (tools as any)?.[0]?.functionDeclarations ?? [];
       const groqTools = declarations.map((decl: any) => ({
         type: "function",
@@ -86,7 +46,7 @@ export class ChatService {
           name: decl.name,
           description: decl.description,
           parameters: lowercaseSchemaTypes(decl.parameters),
-        }
+        },
       }));
 
       const messages: any[] = [];
@@ -128,25 +88,52 @@ export class ChatService {
             functionCall: {
               name: tc.function.name,
               args: JSON.parse(tc.function.arguments || "{}"),
-            }
+            },
           });
         }
       }
 
-      const geminiResponse = {
+      const unifiedResponse = {
         candidates: [
           {
             content: {
               parts,
-            }
-          }
+            },
+          },
         ],
         get text() {
           return message?.content || "";
-        }
+        },
       };
 
-      return geminiResponse as any;
+      return unifiedResponse as any;
+    } catch (groqError: any) {
+      // ── Fallback Path: Google Gemini (gemini-2.5-flash) ────────────────
+      console.warn("Groq call failed. Falling back to Gemini...", groqError.message || groqError);
+
+      const config: any = {};
+      if (tools) {
+        config.tools = JSON.parse(JSON.stringify(tools));
+      }
+      if (systemInstruction) {
+        config.systemInstruction = systemInstruction;
+      }
+
+      const contents = [
+        ...history.map((m) => ({
+          role: m.role === "ASSISTANT" ? "model" : "user",
+          parts: [{ text: m.content }],
+        })),
+        { role: "user", parts: [{ text: prompt }] },
+      ];
+
+      const response = await gemini.models.generateContent({
+        model: MODELS.GEMINI,
+        contents,
+        config,
+      });
+
+      return response;
     }
   }
 }

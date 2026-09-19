@@ -5,13 +5,14 @@
 // change models here
 
 export const MODELS = {
-  GEMINI: "gemini-2.5-flash",
   GROQ: "llama-3.3-70b-versatile",
+  GEMINI: "gemini-2.5-flash",
 } as const;
 
-export const DEFAULT_PROVIDER = "gemini";
+export const DEFAULT_PROVIDER = "groq";
 
-export const FALLBACK_PROVIDER = "groq";
+export const FALLBACK_PROVIDER = "gemini";
+
 
 
 

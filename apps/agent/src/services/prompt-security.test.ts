@@ -8,8 +8,15 @@ vi.mock("./local-embedder.js", () => ({
   warmupEmbedder: vi.fn().mockResolvedValue(undefined),
 }));
 
-// Keep the Gemini mock for judgePrompt (generateContent), which is still
-// called for gray-zone prompts. embedContent is no longer used.
+vi.mock("../lib/groq.js", () => ({
+  groq: {
+    chat: {
+      completions: {
+        create: vi.fn(),
+      },
+    },
+  },
+}));
 vi.mock("../lib/gemini.js", () => ({
   gemini: {
     models: {
