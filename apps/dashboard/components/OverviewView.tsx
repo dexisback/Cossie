@@ -174,7 +174,11 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
     queryFn: queryFns.approvals,
     refetchInterval: 15_000,
   });
-  const { data: logs = [], isLoading: logsLoading } = useQuery({
+  const {
+    data: logs = [],
+    isLoading: logsLoading,
+    refetch: refetchLogs,
+  } = useQuery({
     queryKey: keys.logs,
     queryFn: queryFns.logs,
     refetchInterval: 10_000,
@@ -214,9 +218,36 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
     }
 
     function handleRequestCompleted(e: Event) {
-      setTimeout(() => {
-        setIsLiveRunning(false);
-      }, 500);
+      const detail = (e as CustomEvent).detail;
+      const prompt = detail?.prompt || activeRunPrompt;
+
+      refetchLogs()
+        .then((res) => {
+          const freshLogs = Array.isArray(res.data) ? res.data : [];
+          const startTime = runStartTime || Date.now() - 5000;
+          const matching = freshLogs.find((l: any) => {
+            const logTime = new Date(l.createdAt).getTime();
+            return logTime >= startTime - 4000;
+          });
+
+          if (matching) {
+            setActiveRunLog(matching);
+          } else if (prompt) {
+            setActiveRunLog({
+              toolName: "Direct Response",
+              eventType: "CONVERSATION",
+              decision: "ALLOW",
+              prompt,
+              createdAt: new Date().toISOString(),
+            });
+          } else if (freshLogs[0]) {
+            setActiveRunLog(freshLogs[0]);
+          }
+          setIsLiveRunning(false);
+        })
+        .catch(() => {
+          setIsLiveRunning(false);
+        });
     }
 
     window.addEventListener("cossie:request-started", handleRequestStarted);
@@ -225,22 +256,20 @@ export function OverviewView({ onNavigate }: OverviewViewProps) {
       window.removeEventListener("cossie:request-started", handleRequestStarted);
       window.removeEventListener("cossie:request-completed", handleRequestCompleted);
     };
-  }, []);
+  }, [refetchLogs, activeRunPrompt, runStartTime]);
 
-  // Update activeRunLog when new logs arrive after runStartTime
+  // Sync activeRunLog when background log updates arrive
   useEffect(() => {
-    if (runStartTime && logs.length > 0) {
+    if (runStartTime && logs.length > 0 && !activeRunLog) {
       const matchingLog = logs.find((l: any) => {
         const logTime = new Date(l.createdAt).getTime();
-        return logTime >= runStartTime - 3000;
+        return logTime >= runStartTime - 4000;
       });
       if (matchingLog) {
         setActiveRunLog(matchingLog);
-      } else if (logs[0] && isLiveRunning) {
-        setActiveRunLog(logs[0]);
       }
     }
-  }, [logs, runStartTime, isLiveRunning]);
+  }, [logs, runStartTime, activeRunLog]);
 
   const stats = [
     {

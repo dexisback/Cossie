@@ -110,7 +110,7 @@ export function AgentCard() {
         abortRef.current = null;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       const replyContent = data.response || "No response content from agent.";
       setMessages((prev) => [
         ...prev,
@@ -126,11 +126,11 @@ export function AgentCard() {
       queryClient.invalidateQueries({ queryKey: keys.system });
       window.dispatchEvent(
         new CustomEvent("cossie:request-completed", {
-          detail: { timestamp: Date.now(), data },
+          detail: { timestamp: Date.now(), prompt: variables, data },
         })
       );
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       setMessages((prev) => [
         ...prev,
         {
@@ -146,7 +146,7 @@ export function AgentCard() {
       queryClient.invalidateQueries({ queryKey: keys.logs });
       window.dispatchEvent(
         new CustomEvent("cossie:request-completed", {
-          detail: { timestamp: Date.now(), error },
+          detail: { timestamp: Date.now(), prompt: variables, error },
         })
       );
     },
